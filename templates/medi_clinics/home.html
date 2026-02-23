@@ -1,0 +1,116 @@
+<!-- templates/home.html -->
+{% extends 'medi_clinics/base.html' %}
+{% load static %}
+
+{% block title %}Medi Clinics – Modern Clinic Management Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <span class="badge badge-soft-primary mb-3">
+                    <i class="bi bi-stethoscope me-1"></i> Healthcare Management Simplified
+                </span>
+                <h1 class="display-4 fw-bold text-dark mb-4">Medi Clinics</h1>
+                <p class="lead text-secondary mb-4">
+                    A complete clinic management system for owners. Register clinics, manage staff,
+                    track patients, and streamline operations – all in one place.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'clinic_owners:register' %}" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                        <i class="bi bi-person-plus-fill me-2"></i> Get Started
+                    </a>
+                    <a href="{% url 'clinic_owners:login' %}" class="btn btn-outline-secondary btn-lg rounded-pill">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Login
+                    </a>
+                </div>
+                <div class="trust-indicators mt-4">
+                    <span><i class="bi bi-shield-check text-primary me-2"></i> Secure & HIPAA compliant</span>
+                    <span class="mx-3">•</span>
+                    <span><i class="bi bi-clock-history text-primary me-2"></i> 24/7 support</span>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <div class="hero-illustration position-relative">
+                    <i class="bi bi-hospital display-1 text-primary opacity-25"></i>
+                    <div class="position-absolute top-50 start-50 translate-middle">
+                        <i class="bi bi-heart-pulse-fill text-primary" style="font-size: 4rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge badge-soft-primary mb-3">Features</span>
+            <h2 class="fw-bold display-6 mb-3">Everything you need to run your clinics</h2>
+            <p class="lead text-secondary mx-auto" style="max-width: 650px;">
+                Powerful tools designed to simplify daily operations and improve patient care.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary text-white mb-3">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h3 class="fw-semibold">Manage Clinics</h3>
+                        <p class="text-secondary">Register multiple clinics, update details, set operation hours and departments effortlessly.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary text-white mb-3">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3 class="fw-semibold">Staff Management</h3>
+                        <p class="text-secondary">Add staff, assign them to clinics, track attendance, leave, and salaries all in one view.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 shadow-sm border-0 rounded-4">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary text-white mb-3">
+                            <i class="bi bi-graph-up"></i>
+                        </div>
+                        <h3 class="fw-semibold">Analytics & Reporting</h3>
+                        <p class="text-secondary">Gain insights into revenue, patient visits, and clinic performance with visual reports (coming soon).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5">
+    <div class="container">
+        <div class="cta-box text-center p-5 rounded-4 shadow-sm">
+            <div class="mb-3">
+                <i class="bi bi-quote display-3 text-primary opacity-50"></i>
+            </div>
+            <h2 class="fw-bold mb-3">Ready to transform your clinic management?</h2>
+            <p class="lead text-secondary mx-auto mb-4" style="max-width: 600px;">
+                Join hundreds of clinic owners who trust Medi Clinics to streamline their daily operations and enhance patient experience.
+            </p>
+            <a href="{% url 'clinic_owners:register' %}" class="btn btn-primary btn-lg rounded-pill px-5">
+                <i class="bi bi-rocket-takeoff me-2"></i> Start Free Trial
+            </a>
+            <p class="text-secondary small mt-3">
+                <i class="bi bi-check-circle-fill text-success me-1"></i> No credit card required.
+            </p>
+        </div>
+    </div>
+</section>
+{% endblock %}

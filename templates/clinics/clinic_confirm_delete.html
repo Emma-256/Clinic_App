@@ -1,0 +1,31 @@
+{% extends 'medi_clinics/base.html' %}
+{% block title %}Delete Clinic{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h4>Confirm Deactivation</h4>
+            </div>
+            <div class="card-body">
+                <p>
+                    Are you sure you want to deactivate the clinic 
+                    <strong>"{{ clinic.name }}"</strong>? 
+                    This will hide it from active listings but preserve its records.
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                        <label class="form-check-label" for="confirmDelete">
+                            I understand this action cannot be undone.
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Yes, deactivate</button>
+                    <a href="{% url 'clinic_owners:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

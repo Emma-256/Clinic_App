@@ -1,0 +1,579 @@
+
+{% extends 'medi_clinics/base.html' %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+
+
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/clinics/clinic_form.css' %}">
+<!-- HEADER -->
+<div class="reg-header">
+  <div class="reg-header-inner">
+    <div class="reg-header-icon">🏥</div>
+    <div class="reg-header-text">
+      <h1>{{ title }}</h1>
+      <p>Complete each step to register your clinic on the platform.</p>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-steps" id="progressSteps"></div>
+  <div class="progress-bar-outer">
+    <div class="progress-bar-inner" id="progressBar" style="width:2%"></div>
+  </div>
+</div>
+
+{% if form.errors %}
+<div class="server-error-banner">
+  <span style="font-size:20px">⚠️</span>
+  <span><strong>Some fields need correction.</strong> Please review the highlighted errors.</span>
+</div>
+{% endif %}
+
+<div class="toast-msg" id="toastMsg"></div>
+
+<form method="post" enctype="multipart/form-data" novalidate id="clinicForm">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="server-error-banner">⚠️ {{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <!-- ════════════════════════════
+       STEP 1 · BASIC INFORMATION
+  ════════════════════════════ -->
+  <div class="step-panel" id="step1">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">🏥</div>
+        <div>
+          <div class="step-card-title">Basic Information</div>
+          <div class="step-card-sub">Clinic name, branding and overview</div>
+        </div>
+      </div>
+      <div class="step-card-body">
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.name.id_for_label }}">
+            {{ form.name.label }} <span class="req">*</span>
+          </label>
+          <input type="text"
+            name="{{ form.name.html_name }}"
+            id="{{ form.name.id_for_label }}"
+            value="{{ form.name.value|default:'' }}"
+            class="field-input{% if form.name.errors %} invalid{% endif %}"
+            placeholder="e.g. Sunrise Medical Centre"
+            data-required="true">
+          <span class="field-error" id="err-{{ form.name.html_name }}">⚠ Clinic name is required</span>
+          {% for e in form.name.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.slogan.id_for_label }}">{{ form.slogan.label }}</label>
+          <input type="text"
+            name="{{ form.slogan.html_name }}"
+            id="{{ form.slogan.id_for_label }}"
+            value="{{ form.slogan.value|default:'' }}"
+            class="field-input"
+            placeholder="e.g. Care with compassion">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.logo.id_for_label }}">{{ form.logo.label }}</label>
+          <div class="file-wrap">
+            <input type="file"
+              name="{{ form.logo.html_name }}"
+              id="{{ form.logo.id_for_label }}"
+              accept="image/*"
+              onchange="previewLogo(this)">
+          </div>
+          <div class="logo-preview" id="logoPreview">
+            {% if form.instance.logo %}
+              <img src="{{ form.instance.logo.url }}" alt="Current logo">
+              <span class="field-hint">Current logo</span>
+            {% else %}
+              <div class="logo-placeholder">🖼</div>
+              <span class="field-hint">Recommended: 200×200px</span>
+            {% endif %}
+          </div>
+          {% for e in form.logo.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group col-full">
+          <label class="field-label" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+          <textarea
+            name="{{ form.description.html_name }}"
+            id="{{ form.description.id_for_label }}"
+            class="field-textarea{% if form.description.errors %} invalid{% endif %}"
+            placeholder="Brief description of services and specialties…">{{ form.description.value|default:'' }}</textarea>
+          {% for e in form.description.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════
+       STEP 2 · LOCATION
+  ════════════════════════════ -->
+  <div class="step-panel" id="step2">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">📍</div>
+        <div>
+          <div class="step-card-title">Location</div>
+          <div class="step-card-sub">Administrative location of the clinic</div>
+        </div>
+      </div>
+      <div class="step-card-body">
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.district.id_for_label }}">{{ form.district.label }} <span class="req">*</span></label>
+          <select name="{{ form.district.html_name }}" id="{{ form.district.id_for_label }}"
+            class="field-select{% if form.district.errors %} invalid{% endif %}" data-required="true">
+            <option value="">Select district…</option>
+            {% for val, label in form.district.field.choices %}
+              {% if val %}<option value="{{ val }}" {% if form.district.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+          </select>
+          <span class="field-error" id="err-{{ form.district.html_name }}">⚠ Please select a district</span>
+          {% for e in form.district.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.county.id_for_label }}">{{ form.county.label }} <span class="req">*</span></label>
+          <select name="{{ form.county.html_name }}" id="{{ form.county.id_for_label }}"
+            class="field-select{% if form.county.errors %} invalid{% endif %}" data-required="true">
+            <option value="">Select county…</option>
+            {% for val, label in form.county.field.choices %}
+              {% if val %}<option value="{{ val }}" {% if form.county.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+          </select>
+          <span class="field-error" id="err-{{ form.county.html_name }}">⚠ Please select a county</span>
+          {% for e in form.county.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.sub_county.id_for_label }}">{{ form.sub_county.label }} <span class="req">*</span></label>
+          <select name="{{ form.sub_county.html_name }}" id="{{ form.sub_county.id_for_label }}"
+            class="field-select{% if form.sub_county.errors %} invalid{% endif %}" data-required="true">
+            <option value="">Select sub-county…</option>
+            {% for val, label in form.sub_county.field.choices %}
+              {% if val %}<option value="{{ val }}" {% if form.sub_county.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+          </select>
+          <span class="field-error" id="err-{{ form.sub_county.html_name }}">⚠ Please select a sub-county</span>
+          {% for e in form.sub_county.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.parish.id_for_label }}">{{ form.parish.label }} <span class="req">*</span></label>
+          <select name="{{ form.parish.html_name }}" id="{{ form.parish.id_for_label }}"
+            class="field-select{% if form.parish.errors %} invalid{% endif %}" data-required="true">
+            <option value="">Select parish…</option>
+            {% for val, label in form.parish.field.choices %}
+              {% if val %}<option value="{{ val }}" {% if form.parish.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+          </select>
+          <span class="field-error" id="err-{{ form.parish.html_name }}">⚠ Please select a parish</span>
+          {% for e in form.parish.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.village.id_for_label }}">{{ form.village.label }} <span class="req">*</span></label>
+          <select name="{{ form.village.html_name }}" id="{{ form.village.id_for_label }}"
+            class="field-select{% if form.village.errors %} invalid{% endif %}" data-required="true">
+            <option value="">Select village…</option>
+            {% for val, label in form.village.field.choices %}
+              {% if val %}<option value="{{ val }}" {% if form.village.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>{% endif %}
+            {% endfor %}
+          </select>
+          <span class="field-error" id="err-{{ form.village.html_name }}">⚠ Please select a village</span>
+          {% for e in form.village.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════
+       STEP 3 · CONTACT
+  ════════════════════════════ -->
+  <div class="step-panel" id="step3">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">📞</div>
+        <div>
+          <div class="step-card-title">Contact Information</div>
+          <div class="step-card-sub">How patients and partners can reach the clinic</div>
+        </div>
+      </div>
+      <div class="step-card-body">
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.phone.id_for_label }}">{{ form.phone.label }} <span class="req">*</span></label>
+          <input type="text" name="{{ form.phone.html_name }}" id="{{ form.phone.id_for_label }}"
+            value="{{ form.phone.value|default:'' }}"
+            class="field-input{% if form.phone.errors %} invalid{% endif %}"
+            placeholder="+256 7XX XXX XXX" data-required="true">
+          <span class="field-error" id="err-{{ form.phone.html_name }}">⚠ Phone number is required</span>
+          {% for e in form.phone.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+          <input type="email" name="{{ form.email.html_name }}" id="{{ form.email.id_for_label }}"
+            value="{{ form.email.value|default:'' }}"
+            class="field-input{% if form.email.errors %} invalid{% endif %}"
+            placeholder="clinic@example.com">
+          {% for e in form.email.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.website.id_for_label }}">{{ form.website.label }}</label>
+          <input type="url" name="{{ form.website.html_name }}" id="{{ form.website.id_for_label }}"
+            value="{{ form.website.value|default:'' }}"
+            class="field-input{% if form.website.errors %} invalid{% endif %}"
+            placeholder="https://www.yourclinic.com">
+          {% for e in form.website.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.emergency_contact.id_for_label }}">{{ form.emergency_contact.label }}</label>
+          <input type="text" name="{{ form.emergency_contact.html_name }}" id="{{ form.emergency_contact.id_for_label }}"
+            value="{{ form.emergency_contact.value|default:'' }}"
+            class="field-input{% if form.emergency_contact.errors %} invalid{% endif %}"
+            placeholder="Emergency contact number">
+          {% for e in form.emergency_contact.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════
+       STEP 4 · OPERATIONS
+  ════════════════════════════ -->
+  <div class="step-panel" id="step4">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">⚙️</div>
+        <div>
+          <div class="step-card-title">Operation Details</div>
+          <div class="step-card-sub">Hours, days, departments and facilities</div>
+        </div>
+      </div>
+      <div class="step-card-body">
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.opening_time.id_for_label }}">{{ form.opening_time.label }}</label>
+          <input type="time" name="{{ form.opening_time.html_name }}" id="{{ form.opening_time.id_for_label }}"
+            value="{{ form.opening_time.value|default:'' }}" class="field-input">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.closing_time.id_for_label }}">{{ form.closing_time.label }}</label>
+          <input type="time" name="{{ form.closing_time.html_name }}" id="{{ form.closing_time.id_for_label }}"
+            value="{{ form.closing_time.value|default:'' }}" class="field-input">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.operation_status.id_for_label }}">{{ form.operation_status.label }}</label>
+          <select name="{{ form.operation_status.html_name }}" id="{{ form.operation_status.id_for_label }}" class="field-select">
+            {% for val, label in form.operation_status.field.choices %}
+              <option value="{{ val }}" {% if form.operation_status.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.established_date.id_for_label }}">{{ form.established_date.label }}</label>
+          <input type="date" name="{{ form.established_date.html_name }}" id="{{ form.established_date.id_for_label }}"
+            value="{{ form.established_date.value|default:'' }}" class="field-input">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">{{ form.is_main_clinic.label }}</label>
+          <label class="toggle-wrap">
+            <div class="toggle-switch">
+              <input type="checkbox" name="{{ form.is_main_clinic.html_name }}" id="{{ form.is_main_clinic.id_for_label }}"
+                {% if form.is_main_clinic.value %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </div>
+            <div class="toggle-info">
+              <div class="toggle-label">This is the primary clinic</div>
+              <div class="toggle-sub">Mark if this is your main branch</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Departments — {{ checkbox.tag }} renders the native <input> correctly -->
+        <div class="field-group col-full">
+          <label class="field-label">{{ form.departments.label }} <span class="req">*</span></label>
+          {% if form.departments.errors %}
+            <span class="field-error show">⚠ {% for e in form.departments.errors %}{{ e }}{% endfor %}</span>
+          {% endif %}
+          <div class="checkbox-grid" id="dept-grid" data-group-required="true">
+            {% for cb in form.departments %}
+              <label class="checkbox-pill{% if cb.data.selected %} pill-on{% endif %}">
+                {{ cb.tag }}
+                <span class="cp-dot"></span>
+                {{ cb.choice_label }}
+              </label>
+            {% endfor %}
+          </div>
+          <span class="group-error" id="err-departments">⚠ Please select at least one department</span>
+        </div>
+
+        <!-- Operation Days -->
+        <div class="field-group col-full">
+          <label class="field-label">{{ form.operation_days.label }} <span class="req">*</span></label>
+          {% if form.operation_days.errors %}
+            <span class="field-error show">⚠ {% for e in form.operation_days.errors %}{{ e }}{% endfor %}</span>
+          {% endif %}
+          <div class="checkbox-grid day-grid" id="days-grid" data-group-required="true">
+            {% for cb in form.operation_days %}
+              <label class="checkbox-pill{% if cb.data.selected %} pill-on{% endif %}">
+                {{ cb.tag }}
+                <span class="cp-dot"></span>
+                {{ cb.choice_label }}
+              </label>
+            {% endfor %}
+          </div>
+          <span class="group-error" id="err-operation_days">⚠ Please select at least one operation day</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════
+       STEP 5 · BANKING
+  ════════════════════════════ -->
+  <div class="step-panel" id="step5">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">🏦</div>
+        <div>
+          <div class="step-card-title">Banking Information</div>
+          <div class="step-card-sub">For financial transactions and billing</div>
+        </div>
+      </div>
+      <div class="step-card-body">
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.bank_name.id_for_label }}">{{ form.bank_name.label }}</label>
+          <input type="text" name="{{ form.bank_name.html_name }}" id="{{ form.bank_name.id_for_label }}"
+            value="{{ form.bank_name.value|default:'' }}" class="field-input" placeholder="e.g. Stanbic Bank">
+          {% for e in form.bank_name.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.bank_account_number.id_for_label }}">{{ form.bank_account_number.label }}</label>
+          <input type="text" name="{{ form.bank_account_number.html_name }}" id="{{ form.bank_account_number.id_for_label }}"
+            value="{{ form.bank_account_number.value|default:'' }}" class="field-input" placeholder="Account number">
+          {% for e in form.bank_account_number.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.bank_branch.id_for_label }}">{{ form.bank_branch.label }}</label>
+          <input type="text" name="{{ form.bank_branch.html_name }}" id="{{ form.bank_branch.id_for_label }}"
+            value="{{ form.bank_branch.value|default:'' }}" class="field-input" placeholder="Branch name">
+          {% for e in form.bank_branch.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════
+       STEP 6 · LICENSING
+  ════════════════════════════ -->
+  <div class="step-panel" id="step6">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">📋</div>
+        <div>
+          <div class="step-card-title">Licensing & Status</div>
+          <div class="step-card-sub">Regulatory, supervision and active status</div>
+        </div>
+      </div>
+      <div class="step-card-body">
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.licensing_body.id_for_label }}">{{ form.licensing_body.label }} <span class="req">*</span></label>
+          <select name="{{ form.licensing_body.html_name }}" id="{{ form.licensing_body.id_for_label }}"
+            class="field-select{% if form.licensing_body.errors %} invalid{% endif %}" data-required="true">
+            {% for val, label in form.licensing_body.field.choices %}
+              <option value="{{ val }}" {% if form.licensing_body.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <span class="field-error" id="err-{{ form.licensing_body.html_name }}">⚠ Please select a licensing body</span>
+          {% for e in form.licensing_body.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.registration_number.id_for_label }}">{{ form.registration_number.label }} <span class="req">*</span></label>
+          <input type="text" name="{{ form.registration_number.html_name }}" id="{{ form.registration_number.id_for_label }}"
+            value="{{ form.registration_number.value|default:'' }}"
+            class="field-input{% if form.registration_number.errors %} invalid{% endif %}"
+            placeholder="REG-XXXX-XXXX" data-required="true">
+          <span class="field-error" id="err-{{ form.registration_number.html_name }}">⚠ Registration number is required</span>
+          {% for e in form.registration_number.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.registration_date.id_for_label }}">{{ form.registration_date.label }} <span class="req">*</span></label>
+          <input type="date" name="{{ form.registration_date.html_name }}" id="{{ form.registration_date.id_for_label }}"
+            value="{{ form.registration_date.value|default:'' }}"
+            class="field-input{% if form.registration_date.errors %} invalid{% endif %}" data-required="true">
+          <span class="field-error" id="err-{{ form.registration_date.html_name }}">⚠ Registration date is required</span>
+          {% for e in form.registration_date.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.licence_expiry_date.id_for_label }}">{{ form.licence_expiry_date.label }} <span class="req">*</span></label>
+          <input type="date" name="{{ form.licence_expiry_date.html_name }}" id="{{ form.licence_expiry_date.id_for_label }}"
+            value="{{ form.licence_expiry_date.value|default:'' }}"
+            class="field-input{% if form.licence_expiry_date.errors %} invalid{% endif %}" data-required="true">
+          <span class="field-error" id="err-{{ form.licence_expiry_date.html_name }}">⚠ Licence expiry date is required</span>
+          {% for e in form.licence_expiry_date.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.supervisor_title.id_for_label }}">{{ form.supervisor_title.label }}</label>
+          <select name="{{ form.supervisor_title.html_name }}" id="{{ form.supervisor_title.id_for_label }}" class="field-select">
+            {% for val, label in form.supervisor_title.field.choices %}
+              <option value="{{ val }}" {% if form.supervisor_title.value == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.supervisor.id_for_label }}">{{ form.supervisor.label }} <span class="req">*</span></label>
+          <input type="text" name="{{ form.supervisor.html_name }}" id="{{ form.supervisor.id_for_label }}"
+            value="{{ form.supervisor.value|default:'' }}"
+            class="field-input{% if form.supervisor.errors %} invalid{% endif %}"
+            placeholder="Full name" data-required="true">
+          <span class="field-error" id="err-{{ form.supervisor.html_name }}">⚠ Supervisor name is required</span>
+          {% for e in form.supervisor.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">{{ form.is_active.label }}</label>
+          <label class="toggle-wrap">
+            <div class="toggle-switch">
+              <input type="checkbox" name="{{ form.is_active.html_name }}" id="{{ form.is_active.id_for_label }}"
+                {% if form.is_active.value %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </div>
+            <div class="toggle-info">
+              <div class="toggle-label">Clinic is currently active</div>
+              <div class="toggle-sub">Visible to patients on the platform</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.latitude.id_for_label }}">{{ form.latitude.label }} <span class="hint">(optional)</span></label>
+          <input type="number" step="any" name="{{ form.latitude.html_name }}" id="{{ form.latitude.id_for_label }}"
+            value="{{ form.latitude.value|default:'' }}" class="field-input" placeholder="e.g. 0.3476">
+          {% for e in form.latitude.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="{{ form.longitude.id_for_label }}">{{ form.longitude.label }} <span class="hint">(optional)</span></label>
+          <input type="number" step="any" name="{{ form.longitude.html_name }}" id="{{ form.longitude.id_for_label }}"
+            value="{{ form.longitude.value|default:'' }}" class="field-input" placeholder="e.g. 32.5825">
+          {% for e in form.longitude.errors %}<span class="field-error show">⚠ {{ e }}</span>{% endfor %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════
+       STEP 7 · REVIEW & SUBMIT
+  ════════════════════════════ -->
+  <div class="step-panel" id="step7">
+    <div class="step-card">
+      <div class="step-card-header">
+        <div class="step-card-icon">✅</div>
+        <div>
+          <div class="step-card-title">Review & Submit</div>
+          <div class="step-card-sub">Confirm your details before saving</div>
+        </div>
+      </div>
+      <div class="step-card-body single-col">
+        <div class="review-grid" id="reviewGrid"></div>
+        <p style="font-size:.82rem;color:var(--muted);">
+          ✔ Review your information above. Use the Previous button to go back and edit any section.
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- NAV BAR -->
+  <div class="step-nav-bar">
+    <button type="button" class="btn-prev" id="btnPrev" onclick="changeStep(-1)" disabled>
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Previous
+    </button>
+    <span class="step-counter" id="stepCounter">Step 1 of 7</span>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button type="button" class="btn-next" id="btnNext" onclick="changeStep(1)">
+        Next
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      <button type="submit" class="btn-submit" id="btnSubmit" style="display:none;">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Clinic
+      </button>
+    </div>
+  </div>
+
+</form>
+<!-- 1. jQuery first (AJAX depends on it) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- 2. Your AJAX / cascading dropdowns -->
+<script src="{% static 'js/clinics/clinic_form.js' %}"></script>
+
+<!-- 3. Step engine -->
+<script src="{% static 'js/clinics/clinic_form_steps.js' %}"></script>
+
+<!-- 4. Tiny inline boot — only part that needs Django template tags -->
+<script>
+  var startStep = 1;
+  {% if form.errors %}
+  var errFields = [{% for f in form.errors.keys %}"{{ f }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+  var stepMap = {
+    1: ['name','slogan','logo','description'],
+    2: ['district','county','sub_county','parish','village'],
+    3: ['phone','email','website','emergency_contact'],
+    4: ['opening_time','closing_time','operation_status','established_date','departments','operation_days'],
+    5: ['bank_name','bank_account_number','bank_branch'],
+    6: ['licensing_body','registration_number','registration_date','licence_expiry_date','supervisor_title','supervisor','is_active','latitude','longitude']
+  };
+  for (var s = 1; s <= 6; s++) {
+    var hit = false;
+    for (var i = 0; i < stepMap[s].length; i++) {
+      if (errFields.indexOf(stepMap[s][i]) !== -1) { hit = true; break; }
+    }
+    if (hit) { startStep = s; break; }
+  }
+  {% endif %}
+  initStepForm(startStep);
+</script>
+{% endblock %}

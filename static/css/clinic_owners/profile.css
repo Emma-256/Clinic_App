@@ -1,0 +1,12 @@
+  /* Make inputs inside editable fields fill the flex space */
+  .editable-field input,
+  .editable-field select,
+  .editable-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  /* Optional: keep the image thumbnail nicely sized */
+  .readonly-field img {
+    max-width: 100%;
+    height: auto;
+  }

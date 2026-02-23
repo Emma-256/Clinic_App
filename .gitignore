@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+
+# Virtual environment
+.venv/
+.env/
+
+# Django
+db.sqlite3
+*.log
+*.pot
+
+# Media and static files (generated)
+media/
+staticfiles/
+
+# Environment variables
+*.env
+
+# Node / frontend build artifacts (if you use npm/yarn for Bootstrap/JS)
+node_modules/
+package-lock.json
+yarn.lock
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing/coverage
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.pytest_cache/

@@ -1,0 +1,110 @@
+    /* Modern form styling */
+    .card {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: box-shadow 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+    .card-header {
+        border-radius: 1rem 1rem 0 0 !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 1.5rem;
+        border-bottom: none;
+    }
+    .card-header h4 {
+        margin: 0;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+    .form-control {
+        border-radius: 0.75rem;
+        border: 1px solid #e0e0e0;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102,126,234,0.25);
+        outline: none;
+    }
+
+    .text-danger.small {
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    .form-text.text-muted {
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .card-header.sticky-top {
+    z-index: 1020; /* ensures it stays above form fields */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+    /* Two-column layout improvements */
+    @media (min-width: 768px) {
+        .row {
+            margin-left: -0.75rem;
+            margin-right: -0.75rem;
+        }
+        .col-md-6 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+    }
+
+    /* Four-column layout improvements */
+@media (min-width: 992px) {
+    .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+    .col-lg-3 {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+
+/* Reduce vertical spacing */
+.container-fluid {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+.card {
+    margin-bottom: 1rem !important;
+}
+
+.card-body {
+    padding: 1rem !important;
+}
+
+.card-header {
+    padding: 0.75rem 1rem !important;
+}
+
+.form-group {
+    margin-bottom: 1rem !important;
+}
+
+.btn-primary {
+    padding: 0.5rem 1.5rem !important;
+}

@@ -1,0 +1,420 @@
+{% extends "medi_clinics/base.html" %}
+{% load static %}
+
+{% block title %}{{ clinic.name }} Dashboard — Medi Clinics{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'medi_clinics/css/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static '/css/clinics/dashboard.css' %}">
+
+<div class="dash-wrap">
+
+  <!-- ══════════════════════════════
+       HERO HEADER (clinic context)
+  ══════════════════════════════ -->
+  <div class="dash-hero">
+    <div class="dash-hero-inner">
+      <div class="dash-hero-text">
+        <h1>{{ clinic.name }} Dashboard</h1>
+        <p>Manage clinic details, staff, inventory, and more.</p>
+        <div class="dash-hero-date" id="dashDate"></div>
+      </div>
+      <a href="{% url 'clinics:clinic_detail' clinic.id %}" class="btn-register">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+        </svg>
+        View Full Clinic Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       METRIC CARDS (derived from dummy data)
+  ══════════════════════════════ -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-icon teal">👥</div>
+      <div>
+        <div class="metric-label">Total Staff</div>
+        <div class="metric-value" data-count="{{ dummy_staff|length|default:0 }}">{{ dummy_staff|length|default:0 }}</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon green">📦</div>
+      <div>
+        <div class="metric-label">Inventory Items</div>
+        <div class="metric-value" data-count="{{ dummy_inventory|length|default:0 }}">{{ dummy_inventory|length|default:0 }}</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon blue">📊</div>
+      <div>
+        <div class="metric-label">Reports</div>
+        <div class="metric-value" data-count="{{ dummy_reports|length|default:0 }}">{{ dummy_reports|length|default:0 }}</div>
+      </div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-icon amber">🏛️</div>
+      <div>
+        <div class="metric-label">Departments</div>
+        <div class="metric-value" data-count="{{ clinic.departments.all|length|default:0 }}">{{ clinic.departments.all|length|default:0 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       OPERATION DETAILS CARD
+  ══════════════════════════════ -->
+  <div class="dash-card" style="margin-bottom: 24px;">
+    <div class="dash-card-header">
+      <h2>
+        <span class="dash-card-header-icon">⏰</span>
+        Operation Details
+      </h2>
+    </div>
+    <div class="dash-card-body">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+          <div class="clinic-info-row">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <strong>Operation Hours:</strong> {{ clinic.get_operation_hours_display }}
+          </div>
+          <div class="clinic-info-row">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <strong>Operation Days:</strong> 
+            {% for day in clinic.operation_days.all %}
+              {{ day.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <div class="clinic-info-row">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <strong>Departments:</strong> 
+            {% for dept in clinic.departments.all %}
+              {{ dept.name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </div>
+          <div class="clinic-info-row">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/><rect x="2" y="3" width="20" height="18" rx="2"/></svg>
+            <strong>Has Pharmacy:</strong> 
+            <span class="cbadge {% if clinic.has_pharmacy %}cbadge-green{% else %}cbadge-red{% endif %}" style="margin-left: 8px;">
+              {% if clinic.has_pharmacy %}Yes{% else %}No{% endif %}
+            </span>
+          </div>
+          <div class="clinic-info-row">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 12H4M12 4v16"/><rect x="2" y="3" width="20" height="18" rx="2"/></svg>
+            <strong>Has Lab:</strong> 
+            <span class="cbadge {% if clinic.has_lab %}cbadge-green{% else %}cbadge-red{% endif %}" style="margin-left: 8px;">
+              {% if clinic.has_lab %}Yes{% else %}No{% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       STAFF / INVENTORY / REPORTS GRID
+       (using the same clinic-card grid pattern)
+  ══════════════════════════════ -->
+  <div class="clinics-grid">
+    <!-- Staff Card -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h2>
+          <span class="dash-card-header-icon">👥</span>
+          Staff
+        </h2>
+        <span class="cbadge cbadge-teal">Coming Soon</span>
+      </div>
+      <div class="dash-card-body">
+        {% if dummy_staff %}
+          <div class="activity-feed">
+            {% for member in dummy_staff %}
+              <div class="activity-item">
+                <span class="activity-dot" style="background:{% if member.status == 'Active' %}var(--green){% else %}var(--amber){% endif %};"></span>
+                <div style="flex:1;">
+                  <div class="activity-name">{{ member.name }}</div>
+                  <div class="activity-action">{{ member.role }}</div>
+                </div>
+                <span class="cbadge cbadge-{% if member.status == 'Active' %}green{% else %}amber{% endif %}">{{ member.status }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="no-activity">No staff data available.</p>
+        {% endif %}
+      </div>
+      <div style="padding: 16px 24px 24px;">
+        <a href="#" class="btn-full disabled" style="pointer-events: none; opacity: 0.6;">Manage Staff (Demo)</a>
+      </div>
+    </div>
+
+    <!-- Inventory Card -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h2>
+          <span class="dash-card-header-icon">📦</span>
+          Inventory
+        </h2>
+        <span class="cbadge cbadge-teal">Coming Soon</span>
+      </div>
+      <div class="dash-card-body">
+        {% if dummy_inventory %}
+          <div class="activity-feed">
+            {% for item in dummy_inventory %}
+              <div class="activity-item">
+                <span class="activity-dot" style="background:var(--teal);"></span>
+                <div style="flex:1;">
+                  <div class="activity-name">{{ item.item }}</div>
+                  <div class="activity-action">Qty: {{ item.quantity }} | Exp: {{ item.expiry }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="no-activity">No inventory data.</p>
+        {% endif %}
+      </div>
+      <div style="padding: 16px 24px 24px;">
+        <a href="#" class="btn-full disabled" style="pointer-events: none; opacity: 0.6;">Manage Inventory (Demo)</a>
+      </div>
+    </div>
+
+    <!-- Reports Card -->
+    <div class="dash-card">
+      <div class="dash-card-header">
+        <h2>
+          <span class="dash-card-header-icon">📊</span>
+          Reports
+        </h2>
+        <span class="cbadge cbadge-teal">Coming Soon</span>
+      </div>
+      <div class="dash-card-body">
+        {% if dummy_reports %}
+          <div class="activity-feed">
+            {% for report in dummy_reports %}
+              <div class="activity-item">
+                <span class="activity-dot" style="background:var(--blue);"></span>
+                <div style="flex:1;">
+                  <a href="{{ report.url }}" class="activity-name" style="text-decoration:none; color:inherit;">{{ report.name }}</a>
+                  <div class="activity-action">{{ report.date }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="no-activity">No reports available.</p>
+        {% endif %}
+      </div>
+      <div style="padding: 16px 24px 24px;">
+        <a href="#" class="btn-full disabled" style="pointer-events: none; opacity: 0.6;">View Reports (Demo)</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /dash-wrap -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'medi_clinics/js/dashboard.js' %}"></script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} {% extends "medi_clinics/base.html" %}
+{% load static %}
+
+{% block title %}{{ clinic.name }} Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header with clinic name and back button -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="display-6 fw-bold mb-1">{{ clinic.name }}</h2>
+                    <p class="text-muted">Manage clinic details, staff, inventory, and more.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinic Profile Link -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <a href="{% url 'clinics:clinic_detail' clinic.id %}" 
+                    class="btn btn-outline-primary btn-lg">
+                        View Full Clinic Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operation Details Card -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">Operation Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Operation Hours:</strong> {{ clinic.get_operation_hours_display }}</p>
+                            <p><strong>Operation Days:</strong> 
+                                {% for day in clinic.operation_days.all %}
+                                    {{ day.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Departments:</strong> 
+                                {% for dept in clinic.departments.all %}
+                                    {{ dept.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                            <p><strong>Has Pharmacy:</strong> {% if clinic.has_pharmacy %}Yes{% else %}No{% endif %}</p>
+                            <p><strong>Has Lab:</strong> {% if clinic.has_lab %}Yes{% else %}No{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sections: Staff, Inventory, Reports (with dummy data) -->
+    <div class="row g-4">
+        <!-- Staff Section -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Staff</h5>
+                    <span class="badge bg-secondary">Coming Soon</span>
+                </div>
+                <div class="card-body">
+                    {% if dummy_staff %}
+                        <ul class="list-group list-group-flush">
+                            {% for member in dummy_staff %}
+                                <li class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>{{ member.name }}</strong><br>
+                                            <small class="text-muted">{{ member.role }}</small>
+                                        </div>
+                                        <span class="badge {% if member.status == 'Active' %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ member.status }}
+                                        </span>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No staff data available.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="#" class="btn btn-outline-primary btn-sm w-100 disabled">Manage Staff (Demo)</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Section -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Inventory</h5>
+                    <span class="badge bg-secondary">Coming Soon</span>
+                </div>
+                <div class="card-body">
+                    {% if dummy_inventory %}
+                        <ul class="list-group list-group-flush">
+                            {% for item in dummy_inventory %}
+                                <li class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>{{ item.item }}</strong><br>
+                                            <small class="text-muted">Qty: {{ item.quantity }} | Exp: {{ item.expiry }}</small>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No inventory data.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="#" class="btn btn-outline-primary btn-sm w-100 disabled">Manage Inventory (Demo)</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">Reports</h5>
+                    <span class="badge bg-secondary">Coming Soon</span>
+                </div>
+                <div class="card-body">
+                    {% if dummy_reports %}
+                        <ul class="list-group list-group-flush">
+                            {% for report in dummy_reports %}
+                                <li class="list-group-item px-0">
+                                    <a href="{{ report.url }}" class="text-decoration-none">{{ report.name }}</a><br>
+                                    <small class="text-muted">{{ report.date }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No reports available.</p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent">
+                    <a href="#" class="btn btn-outline-primary btn-sm w-100 disabled">View Reports (Demo)</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} {% endcomment %}

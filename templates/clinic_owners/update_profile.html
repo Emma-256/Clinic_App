@@ -1,0 +1,86 @@
+{% extends "medi_clinics/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Update Profile{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Update Profile</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="profileUpdateForm">
+                        {% csrf_token %}
+
+                        <!-- Profile picture preview (if field exists) -->
+                        {% if form.profile_picture or profile_form.profile_picture %}
+                            <div class="text-center mb-4">
+                                <div>
+                                    {% if user.profile.profile_picture %}
+                                        <img src="{{ user.profile.profile_picture.url }}" id="imagePreview"
+                                             class="rounded img-thumbnail mb-2" width="120" height="120"
+                                             style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded d-inline-flex align-items-center justify-content-center mb-2"
+                                             style="width: 120px; height: 120px; font-size: 3rem; color: #aaa;">
+                                            <i class="fas fa-user-circle"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <!-- Render the file field individually -->
+                                {% if form.profile_picture %}
+                                    {% comment %} {{ form.profile_picture|as_crispy_field }} {% endcomment %}
+                                {% elif profile_form.profile_picture %}
+                                    {{ profile_form.profile_picture|as_crispy_field }}
+                                {% endif %}
+                               
+                        {% endif %}
+
+                        <!-- Two‑column form fields -->
+                        <div class="row g-3">
+                            {% if form %}
+                                {% for field in form %}
+                                    {% if field.name != 'profile_picture' %}
+                                        <div class="col-md-6">
+                                            {{ field|as_crispy_field }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% elif profile_form %}
+                                {% for field in profile_form %}
+                                    {% if field.name != 'profile_picture' %}
+                                        <div class="col-md-6">
+                                            {{ field|as_crispy_field }}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="row g-4 mt-2">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="bi bi-save me-2"></i>Save Changes
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <a href="{% url 'clinic_owners:profile' %}" class="btn btn-secondary w-100">
+                                    <i class="bi bi-x-circle me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </div>
+                        
+                    </form>
+                </div> <!-- card-body -->
+            </div> <!-- card -->
+        </div> <!-- col -->
+    </div> <!-- row -->
+</div>
+
+<!-- Font Awesome (if not already in base) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}

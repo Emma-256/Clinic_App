@@ -1,0 +1,51 @@
+<!-- clinic_owners/templates/clinic_owners/register.html -->
+{% extends 'medi_clinics/base.html' %}
+{% block title %}Owner Registration{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-0 px-0">   <!-- reduced vertical padding -->
+    <div class="row justify-content-center">
+        <div class="col-12 px-1">
+            <div class="card mb-3">   <!-- reduced bottom margin -->
+                <div class="card-header bg-primary text-white py-2">   <!-- tighter header -->
+                    <h4 class="text-center mb-0">Clinic Owner Registration</h4>
+                </div>
+                <div class="card-body p-3">   <!-- reduced padding -->
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-12 col-md-6 mb-0 py-0 m-0">   <!-- 2 columns desktop -->
+                                    <div class="form-group mb-0 py-0">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                        {% if field.errors %}
+                                            <div class="text-danger small">
+                                                {{ field.errors|striptags }}
+                                            </div>
+                                        {% endif %}
+                                        {% if field.help_text %}
+                                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-primary px-4 py-2">Register</button>
+                            <a href="{% url 'clinic_owners:login' %}" class="btn btn-secondary px-4 py-2 ms-2">Cancel</a>
+                        </div>
+                    </form>
+                    <p class="text-center mt-3 mb-0">
+                        Already have an account? <a href="{% url 'clinic_owners:login' %}" class="text-decoration-none fw-bold" style="color: #667eea;">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
