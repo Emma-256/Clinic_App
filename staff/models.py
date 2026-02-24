@@ -1,144 +1,93 @@
-# staff/models.py
 from django.db import models
-from django.core.validators import RegexValidator, MinValueValidator
-from django.core.exceptions import ValidationError
-from django.conf import settings  # CustomUser
-from clinics.models import Clinic
+from django.core.validators import RegexValidator
+from clinic_owners.models import CustomUser
 
 
-class TechnicalStaff(models.Model):
-    """Predefined technical roles (e.g., Nurse, Lab Technician)."""
-    name = models.CharField(max_length=100, unique=True, db_index=True)
-    description = models.TextField(blank=True)
+TECHNICAL_ROLES = [
+    ("physician", "Physician/Doctor"),
+    ("specialist", "Specialist"),
+    ("nurse", "Nurse"),
+    ("nurse_practitioner", "Nurse Practitioner"),
+    ("physician_assistant", "Physician Assistant"),
+    ("medical_assistant", "Medical Assistant"),
+    ("pharmacist", "Pharmacist"),
+    ("lab_technician", "Lab Technician"),
+    ("radiology_technician", "Radiology Technician"),
+    ("dietitian", "Dietitian/Nutritionist"),
+    ("social_worker", "Social Worker/Counselor"),
+]
 
-    def __str__(self):
-        return self.name
+SUPPORT_ROLES = [
+    ("clinic_manager", "Clinic Manager/Administrator"),
+    ("receptionist", "Receptionist/Front Desk"),
+    ("billing_specialist", "Billing & Insurance Specialist"),
+    ("records_clerk", "Medical Records Clerk"),
+    ("it_support", "IT Support Staff"),
+    ("maintenance", "Cleaning & Maintenance Staff"),
+]
 
-    class Meta:
-        ordering = ['name']
+ALL_ROLES = TECHNICAL_ROLES + SUPPORT_ROLES
+
+EMPLOYMENT_TYPE_CHOICES = [
+    ("technical", "Technical"),
+    ("support", "Support"),
+]
+
+ACCOUNT_STATUS_CHOICES = [
+    ("active", "Active"),
+    ("inactive", "Inactive"),
+]
+
+DUTY_STATUS_CHOICES = [
+    ("on_duty", "On Duty"),
+    ("on_leave", "On Leave"),
+    ("off_duty", "Off Duty"),
+]
 
 
-class SupportStaff(models.Model):
-    """Predefined support roles (e.g., Receptionist, Cleaner)."""
-    name = models.CharField(max_length=100, unique=True, db_index=True)
-    description = models.TextField(blank=True)
+class StaffProfile(models.Model):
+    phone_regex = RegexValidator(
+        regex=r'^\+256\d{9}$',
+        message="Phone number must be in the format: '+256XXXXXXXXX' (total 13 characters)."
+    )
+    nok_phone_regex = RegexValidator(
+        regex=r'^\+256\d{9}$',
+        message="Phone number must be in the format: '+256XXXXXXXXX' (total 13 characters)."
+    )
 
-    def __str__(self):
-        return self.name
+    # --- Core link fields ---
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='staff_profile')
+    owner = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='staff_members',
+        limit_choices_to={'profile__user_type': 'owner'}
+    )
 
-    class Meta:
-        ordering = ['name']
-
-
-class Staff(models.Model):
-    EMPLOYMENT_TYPES = [
-        ('technical', 'Technical Staff'),
-        ('support', 'Support Staff'),
-    ]
-    ACCOUNT_STATUS = [
-        ('active', 'Active'),
-        ('inactive', 'Inactive'),
-    ]
-    DUTY_STATUS = [
-        ('on_duty', 'On Duty'),
-        ('on_leave', 'On Leave'),
-        ('off_duty', 'Off Duty'),
-    ]
-
-    RELATIONSHIPS = [
-        ('Mother','Mother'),
-        ('Father','Father'),
-        ('Uncle','Uncle'),
-        ('Aunt','Aunt'),
-        ('Gudian','Gudian'),
-
-    ]
-
-    # Link to your custom user model
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='staff_profile')
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_staff')
-
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$',
-                                 message="Phone number must be entered in format: '+999999999'. Up to 15 digits allowed.")
-  
+    # --- Personal info ---
+    phone = models.CharField(validators=[phone_regex], max_length=17, blank=False, unique=True)
+    profile_picture = models.ImageField(upload_to='staff_profile_pics/', blank=True, null=True)
     date_of_birth = models.DateField()
-    national_id = models.CharField(max_length=50, unique=True)
-    profile_picture = models.ImageField(upload_to='staff_pics/', blank=True, null=True)
+    national_id = models.CharField(max_length=20, unique=True)
 
-    employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_TYPES)
-
-    # Role references
-    technical_role = models.ForeignKey(TechnicalStaff, on_delete=models.SET_NULL, null=True, blank=True)
-    support_role = models.ForeignKey(SupportStaff, on_delete=models.SET_NULL, null=True, blank=True)
-
-    registration_number = models.CharField(max_length=100, blank=True, null=True)
+    # --- Employment info ---
+    employment_type = models.CharField(max_length=10, choices=EMPLOYMENT_TYPE_CHOICES)
+    role = models.CharField(max_length=30, choices=ALL_ROLES)
+    registration_number = models.CharField(max_length=50, blank=True, null=True)
     license_expiry_date = models.DateField(blank=True, null=True)
 
-    next_of_kin = models.CharField(max_length=200)
-    nok_relationship = models.CharField(max_length=50, choices=RELATIONSHIPS)
-    nok_phone = models.CharField(validators=[phone_regex], max_length=17)
+    # --- Next of kin ---
+    next_of_kin = models.CharField(max_length=100)
+    nok_relationship = models.CharField(max_length=50)
+    nok_phone = models.CharField(validators=[nok_phone_regex], max_length=17)
 
-    gross_salary = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    monthly_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(0)])
+    # --- Compensation ---
+    gross_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    monthly_allowance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    account_status = models.CharField(max_length=10, choices=ACCOUNT_STATUS, default='active')
-    duty_status = models.CharField(max_length=10, choices=DUTY_STATUS, default='on_duty')
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def clean(self):
-        # enforce role consistency
-        if self.employment_type == 'technical' and not self.technical_role:
-            raise ValidationError("Technical staff must have a technical role.")
-        if self.employment_type == 'support' and not self.support_role:
-            raise ValidationError("Support staff must have a support role.")
+    # --- Status ---
+    account_status = models.CharField(max_length=10, choices=ACCOUNT_STATUS_CHOICES, default='active')
+    duty_status = models.CharField(max_length=10, choices=DUTY_STATUS_CHOICES, default='on_duty')
 
     def __str__(self):
-        return f"{self.user.get_full_name()} ({self.get_employment_type_display()})"
-
-
-class ClinicStaffAssignment(models.Model):
-    """Tracks which clinic owner assigned which staff to which clinic."""
-    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE)
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
-    assigned_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
-    assigned_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('clinic', 'staff')
-        db_table = 'clinic_staff_assignment'  # 👈 avoids clash
-
-    def __str__(self):
-        return f"{self.staff} → {self.clinic} (assigned by {self.assigned_by})"
-
-
-class DutyRoster(models.Model):
-    """Duty roster for assigning staff to specific days/shifts."""
-    SHIFT_CHOICES = [
-        ('morning', 'Morning'),
-        ('afternoon', 'Afternoon'),
-        ('night', 'Night'),
-    ]
-
-    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name='duty_rosters')
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name='duty_rosters')
-    date = models.DateField()
-    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, blank=True, null=True)
-    notes = models.TextField(blank=True)
-
-    assigned_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='assigned_duties'
-    )
-    assigned_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('clinic', 'staff', 'date', 'shift')
-        ordering = ['date', 'shift']
-
-    def __str__(self):
-        return f"{self.staff} → {self.clinic} on {self.date} ({self.shift or 'unspecified'})"
+        return f"{self.user.get_full_name()} ({self.get_role_display()}) - {self.owner.username}"

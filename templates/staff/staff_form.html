@@ -1,365 +1,520 @@
-{% extends "medi_clinics/base.html" %}
+{% extends 'medi_clinics/base.html' %}
 {% load static %}
 
 {% block title %}Register Staff{% endblock %}
 
+
 {% block content %}
-<div class="card shadow-sm p-4 my-4" style="max-width:860px;margin:auto;">
-  <h2 class="mb-1">Register Staff Member</h2>
-  <p class="text-muted mb-4">Fill in the details below. The staff member will use the credentials you set to log in.</p>
 
-  <form method="post" enctype="multipart/form-data" novalidate>
+<link rel="stylesheet" href="{% static 'css/staff/staff_form.css' %}">
+
+<div class="sf-wrap">
+
+  <!-- HERO -->
+  <div class="sf-hero">
+    <div class="sf-hero-inner">
+      <div class="sf-hero-icon">👤</div>
+      <div class="sf-hero-text">
+        <h1>Register New Staff</h1>
+        <p>Complete each step to add a new staff member to your clinic.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-steps" id="progressSteps"></div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progressBar" style="width:2%"></div>
+    </div>
+  </div>
+
+  <!-- SERVER ERROR BANNER -->
+  {% if form.errors %}
+  <div class="server-error-banner">
+    <span style="font-size:18px">⚠️</span>
+    <span><strong>Some fields need correction.</strong> Please review the highlighted errors.</span>
+  </div>
+  {% endif %}
+
+  <div class="toast-msg" id="toastMsg"></div>
+
+  <!-- FORM -->
+  <form method="POST" enctype="multipart/form-data" novalidate id="staffForm">
     {% csrf_token %}
-
     {% if form.non_field_errors %}
-      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    <div class="server-error-banner">⚠️ {{ form.non_field_errors }}</div>
     {% endif %}
 
-    <!-- ══════════════════════════════
-         SECTION 1 — Account Details
-    ══════════════════════════════ -->
-    <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3">
-      <i class="bi bi-person-lock me-1"></i> Account Details
-    </h6>
-    <div class="row g-3 mb-4">
 
-      <div class="col-md-6">
-        <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-               placeholder="Choose a username" value="{{ form.username.value|default:'' }}">
-        {% if form.username.errors %}
-          <div class="invalid-feedback">{{ form.username.errors|striptags }}</div>
-        {% endif %}
-      </div>
+    <!-- ════════════════════════
+         STEP 1 · ACCOUNT
+    ════════════════════════ -->
+    <div class="step-panel" id="step1">
+      <div class="sf-card">
+        <div class="sf-card-header">
+          <div class="sf-card-header-icon">🔐</div>
+          <div>
+            <div class="sf-card-title">Account Information</div>
+            <div class="sf-card-sub">Login credentials for this staff member</div>
+          </div>
+        </div>
+        <div class="sf-card-body">
 
-      <div class="col-md-6">
-        <input type="text" name="first_name" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
-               placeholder="First name" value="{{ form.first_name.value|default:'' }}">
-        {% if form.first_name.errors %}
-          <div class="invalid-feedback">{{ form.first_name.errors|striptags }}</div>
-        {% endif %}
-      </div>
+          <div class="field-group">
+            <label class="field-label" for="{{ form.username.id_for_label }}">
+              {{ form.username.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.username.html_name }}"
+              id="{{ form.username.id_for_label }}"
+              value="{{ form.username.value|default:'' }}"
+              class="{% if form.username.errors %}field-error-input{% endif %}"
+              placeholder="e.g. john.doe"
+              data-required="true"
+              autocomplete="username">
+            <span class="field-error" id="err-{{ form.username.html_name }}">⚠ Username is required</span>
+            {% for e in form.username.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
 
-      <div class="col-md-6">
-        <input type="text" name="last_name" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
-               placeholder="Last name" value="{{ form.last_name.value|default:'' }}">
-        {% if form.last_name.errors %}
-          <div class="invalid-feedback">{{ form.last_name.errors|striptags }}</div>
-        {% endif %}
-      </div>
+          <div class="field-group">
+            <label class="field-label" for="{{ form.email.id_for_label }}">
+              {{ form.email.label }} <span class="req">*</span>
+            </label>
+            <input type="email"
+              name="{{ form.email.html_name }}"
+              id="{{ form.email.id_for_label }}"
+              value="{{ form.email.value|default:'' }}"
+              class="{% if form.email.errors %}field-error-input{% endif %}"
+              placeholder="staff@clinic.com"
+              data-required="true"
+              autocomplete="email">
+            <span class="field-error" id="err-{{ form.email.html_name }}">⚠ Email is required</span>
+            {% for e in form.email.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
 
-      <div class="col-md-6">
-        <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}"
-               placeholder="Email address" value="{{ form.email.value|default:'' }}">
-        {% if form.email.errors %}
-          <div class="invalid-feedback">{{ form.email.errors|striptags }}</div>
-        {% endif %}
-      </div>
-      <div class="col-md-6">
-        <input type="tel" name="phone" class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
-               placeholder="+256XXXXXXXXX" value="{{ form.phone.value|default:'' }}">
-        {% if form.phone.errors %}
-          <div class="invalid-feedback">{{ form.phone.errors|striptags }}</div>
-        {% endif %}
-      </div>
-      <div class="col-md-6">
-        <input type="password" name="password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
-               placeholder="Set a password">
-        {% if form.password1.errors %}
-          <div class="invalid-feedback">{{ form.password1.errors|striptags }}</div>
-        {% endif %}
-      </div>
+          <div class="field-group">
+            <label class="field-label" for="{{ form.password1.id_for_label }}">
+              {{ form.password1.label }} <span class="req">*</span>
+            </label>
+            <input type="password"
+              name="{{ form.password1.html_name }}"
+              id="{{ form.password1.id_for_label }}"
+              class="{% if form.password1.errors %}field-error-input{% endif %}"
+              placeholder="Minimum 8 characters"
+              data-required="true"
+              autocomplete="new-password">
+            <span class="field-error" id="err-{{ form.password1.html_name }}">⚠ Password is required</span>
+            {% for e in form.password1.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
 
-      <div class="col-md-12">
-        <input type="password" name="password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
-               placeholder="Confirm password">
-        {% if form.password2.errors %}
-          <div class="invalid-feedback">{{ form.password2.errors|striptags }}</div>
-        {% endif %}
-      </div>
+          <div class="field-group">
+            <label class="field-label" for="{{ form.password2.id_for_label }}">
+              {{ form.password2.label }} <span class="req">*</span>
+            </label>
+            <input type="password"
+              name="{{ form.password2.html_name }}"
+              id="{{ form.password2.id_for_label }}"
+              class="{% if form.password2.errors %}field-error-input{% endif %}"
+              placeholder="Repeat password"
+              data-required="true"
+              autocomplete="new-password">
+            <span class="field-error" id="err-{{ form.password2.html_name }}">⚠ Please confirm your password</span>
+            {% for e in form.password2.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
 
-    </div>
-
-    <!-- ══════════════════════════════
-         SECTION 2 — Personal Info
-    ══════════════════════════════ -->
-    <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3">
-      <i class="bi bi-person me-1"></i> Personal Information
-    </h6>
-    <div class="row g-3 mb-4">
-      <div class="col-md-6">
-        <input type="date" name="date_of_birth" class="form-control {% if form.date_of_birth.errors %}is-invalid{% endif %}"
-               value="{{ form.date_of_birth.value|default:'' }}">
-        <small class="text-muted">Date of birth</small>
-        {% if form.date_of_birth.errors %}
-          <div class="invalid-feedback d-block">{{ form.date_of_birth.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-6">
-        <input type="text" name="national_id" class="form-control {% if form.national_id.errors %}is-invalid{% endif %}"
-               placeholder="National ID number" value="{{ form.national_id.value|default:'' }}">
-        {% if form.national_id.errors %}
-          <div class="invalid-feedback">{{ form.national_id.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-12">
-        <input type="file" name="profile_picture" class="form-control" accept="image/*">
-        <small class="text-muted">Profile picture (optional)</small>
-      </div>
-
-    </div>
-
-    <!-- ══════════════════════════════
-         SECTION 3 — Employment
-    ══════════════════════════════ -->
-    <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3">
-      <i class="bi bi-briefcase me-1"></i> Employment Details
-    </h6>
-    <div class="row g-3 mb-4">
-
-      <div class="col-md-6">
-        <select name="employment_type" id="id_employment_type"
-                class="form-select {% if form.employment_type.errors %}is-invalid{% endif %}">
-          <option value="">— Select Employment Type —</option>
-          {% for value, label in form.fields.employment_type.choices %}
-            {% if value %}
-              <option value="{{ value }}" {% if form.employment_type.value == value %}selected{% endif %}>
-                {{ label }}
-              </option>
-            {% endif %}
-          {% endfor %}
-        </select>
-        {% if form.employment_type.errors %}
-          <div class="invalid-feedback">{{ form.employment_type.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <!-- Dynamic role dropdown -->
-      <div class="col-md-6">
-        <!-- Placeholder before type is chosen -->
-        <select id="role-placeholder" class="form-select" disabled>
-          <option>— Select employment type first —</option>
-        </select>
-
-        <!-- Technical role (hidden until needed) -->
-        <select name="technical_role" id="id_technical_role"
-                class="form-select {% if form.technical_role.errors %}is-invalid{% endif %}"
-                style="display:none;">
-          <option value="">— Select Technical Role —</option>
-        </select>
-        {% if form.technical_role.errors %}
-          <div class="invalid-feedback d-block">{{ form.technical_role.errors|striptags }}</div>
-        {% endif %}
-
-        <!-- Support role (hidden until needed) -->
-        <select name="support_role" id="id_support_role"
-                class="form-select {% if form.support_role.errors %}is-invalid{% endif %}"
-                style="display:none;">
-          <option value="">— Select Support Role —</option>
-        </select>
-        {% if form.support_role.errors %}
-          <div class="invalid-feedback d-block">{{ form.support_role.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-6">
-        <input type="text" name="registration_number"
-               class="form-control {% if form.registration_number.errors %}is-invalid{% endif %}"
-               placeholder="Professional reg. number (if applicable)"
-               value="{{ form.registration_number.value|default:'' }}">
-        {% if form.registration_number.errors %}
-          <div class="invalid-feedback">{{ form.registration_number.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-6">
-        <input type="date" name="license_expiry_date"
-               class="form-control {% if form.license_expiry_date.errors %}is-invalid{% endif %}"
-               value="{{ form.license_expiry_date.value|default:'' }}">
-        <small class="text-muted">License expiry date (if applicable)</small>
-        {% if form.license_expiry_date.errors %}
-          <div class="invalid-feedback d-block">{{ form.license_expiry_date.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-     {% comment %}  <!-- Clinic assignment -->
-      <div class="col-md-12">
-        <select name="clinic" id="id_clinic" class="form-select" required>
-          <option value="">— Assign to Clinic —</option>
-          {% for clinic in owner_clinics %}
-            <option value="{{ clinic.id }}">{{ clinic.name }}</option>
-          {% endfor %}
-        </select>
-      </div> {% endcomment %}
-
-    </div>
-
-    <!-- ══════════════════════════════
-         SECTION 4 — Next of Kin
-    ══════════════════════════════ -->
-    <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3">
-      <i class="bi bi-people me-1"></i> Next of Kin
-    </h6>
-    <div class="row g-3 mb-4">
-
-      <div class="col-md-4">
-        <input type="text" name="next_of_kin"
-               class="form-control {% if form.next_of_kin.errors %}is-invalid{% endif %}"
-               placeholder="Full name" value="{{ form.next_of_kin.value|default:'' }}">
-        {% if form.next_of_kin.errors %}
-          <div class="invalid-feedback">{{ form.next_of_kin.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-4">
-        <select name="nok_relationship"
-                class="form-select {% if form.nok_relationship.errors %}is-invalid{% endif %}">
-          <option value="">— Select Relationship to next_of_kin —</option>
-          {% for value, label in form.fields.nok_relationship.choices %}
-            {% if value %}
-              <option value="{{ value }}" {% if form.nok_relationship.value == value %}selected{% endif %}>
-                {{ label }}
-              </option>
-            {% endif %}
-          {% endfor %}
-        </select>
-        {% if form.nok_relationship.errors %}
-          <div class="invalid-feedback">{{ form.nok_relationship.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-4">
-        <input type="tel" name="nok_phone"
-               class="form-control {% if form.nok_phone.errors %}is-invalid{% endif %}"
-               placeholder="+256XXXXXXXXX" value="{{ form.nok_phone.value|default:'' }}">
-        {% if form.nok_phone.errors %}
-          <div class="invalid-feedback">{{ form.nok_phone.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-    </div>
-
-    <!-- ══════════════════════════════
-         SECTION 5 — Salary & Status
-    ══════════════════════════════ -->
-    <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3">
-      <i class="bi bi-cash-coin me-1"></i> Salary & Status
-    </h6>
-    <div class="row g-3 mb-4">
-
-      <div class="col-md-6">
-        <div class="input-group">
-          <span class="input-group-text fw-bold">UGX</span>
-          <input type="number" name="gross_salary" min="0" step="1000"
-                 class="form-control {% if form.gross_salary.errors %}is-invalid{% endif %}"
-                 placeholder="Gross salary" value="{{ form.gross_salary.value|default:'' }}">
-          {% if form.gross_salary.errors %}
-            <div class="invalid-feedback">{{ form.gross_salary.errors|striptags }}</div>
-          {% endif %}
         </div>
       </div>
-
-      <div class="col-md-6">
-        <div class="input-group">
-          <span class="input-group-text fw-bold">UGX</span>
-          <input type="number" name="monthly_allowance" min="0" step="1000"
-                 class="form-control {% if form.monthly_allowance.errors %}is-invalid{% endif %}"
-                 placeholder="Monthly allowance" value="{{ form.monthly_allowance.value|default:'' }}">
-          {% if form.monthly_allowance.errors %}
-            <div class="invalid-feedback">{{ form.monthly_allowance.errors|striptags }}</div>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <select name="account_status" class="form-select {% if form.account_status.errors %}is-invalid{% endif %}">
-          {% for value, label in form.fields.account_status.choices %}
-            <option value="{{ value }}" {% if form.account_status.value == value %}selected{% endif %}>
-              {{ label }}
-            </option>
-          {% endfor %}
-        </select>
-        <small class="text-muted">Account status</small>
-        {% if form.account_status.errors %}
-          <div class="invalid-feedback">{{ form.account_status.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
-      <div class="col-md-6">
-        <select name="duty_status" class="form-select {% if form.duty_status.errors %}is-invalid{% endif %}">
-          {% for value, label in form.fields.duty_status.choices %}
-            <option value="{{ value }}" {% if form.duty_status.value == value %}selected{% endif %}>
-              {{ label }}
-            </option>
-          {% endfor %}
-        </select>
-        <small class="text-muted">Duty status</small>
-        {% if form.duty_status.errors %}
-          <div class="invalid-feedback">{{ form.duty_status.errors|striptags }}</div>
-        {% endif %}
-      </div>
-
     </div>
 
-    <button type="submit" class="btn btn-primary w-100 py-2">
-      <i class="bi bi-person-plus me-2"></i> Register Staff Member
-    </button>
+
+    <!-- ════════════════════════
+         STEP 2 · PERSONAL
+    ════════════════════════ -->
+    <div class="step-panel" id="step2">
+      <div class="sf-card">
+        <div class="sf-card-header">
+          <div class="sf-card-header-icon">👤</div>
+          <div>
+            <div class="sf-card-title">Personal Information</div>
+            <div class="sf-card-sub">Identity and contact details</div>
+          </div>
+        </div>
+        <div class="sf-card-body">
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.first_name.id_for_label }}">
+              {{ form.first_name.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.first_name.html_name }}"
+              id="{{ form.first_name.id_for_label }}"
+              value="{{ form.first_name.value|default:'' }}"
+              class="{% if form.first_name.errors %}field-error-input{% endif %}"
+              placeholder="First name" data-required="true">
+            <span class="field-error" id="err-{{ form.first_name.html_name }}">⚠ First name is required</span>
+            {% for e in form.first_name.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.last_name.id_for_label }}">
+              {{ form.last_name.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.last_name.html_name }}"
+              id="{{ form.last_name.id_for_label }}"
+              value="{{ form.last_name.value|default:'' }}"
+              class="{% if form.last_name.errors %}field-error-input{% endif %}"
+              placeholder="Last name" data-required="true">
+            <span class="field-error" id="err-{{ form.last_name.html_name }}">⚠ Last name is required</span>
+            {% for e in form.last_name.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.date_of_birth.id_for_label }}">
+              {{ form.date_of_birth.label }} <span class="req">*</span>
+            </label>
+            <input type="date"
+              name="{{ form.date_of_birth.html_name }}"
+              id="{{ form.date_of_birth.id_for_label }}"
+              value="{{ form.date_of_birth.value|default:'' }}"
+              class="{% if form.date_of_birth.errors %}field-error-input{% endif %}"
+              data-required="true">
+            <span class="field-error" id="err-{{ form.date_of_birth.html_name }}">⚠ Date of birth is required</span>
+            {% for e in form.date_of_birth.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.national_id.id_for_label }}">
+              {{ form.national_id.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.national_id.html_name }}"
+              id="{{ form.national_id.id_for_label }}"
+              value="{{ form.national_id.value|default:'' }}"
+              class="{% if form.national_id.errors %}field-error-input{% endif %}"
+              placeholder="National ID number" data-required="true">
+            <span class="field-error" id="err-{{ form.national_id.html_name }}">⚠ National ID is required</span>
+            {% for e in form.national_id.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.phone.id_for_label }}">
+              {{ form.phone.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.phone.html_name }}"
+              id="{{ form.phone.id_for_label }}"
+              value="{{ form.phone.value|default:'' }}"
+              class="{% if form.phone.errors %}field-error-input{% endif %}"
+              placeholder="+256 7XX XXX XXX" data-required="true">
+            <span class="field-error" id="err-{{ form.phone.html_name }}">⚠ Phone number is required</span>
+            {% for e in form.phone.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.profile_picture.id_for_label }}">
+              {{ form.profile_picture.label }}
+              <span class="hint">(optional)</span>
+            </label>
+            <input type="file"
+              name="{{ form.profile_picture.html_name }}"
+              id="{{ form.profile_picture.id_for_label }}"
+              accept="image/*">
+            {% for e in form.profile_picture.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ════════════════════════
+         STEP 3 · EMPLOYMENT
+    ════════════════════════ -->
+    <div class="step-panel" id="step3">
+      <div class="sf-card">
+        <div class="sf-card-header">
+          <div class="sf-card-header-icon">💼</div>
+          <div>
+            <div class="sf-card-title">Employment Information</div>
+            <div class="sf-card-sub">Role, type and licensing details</div>
+          </div>
+        </div>
+        <div class="sf-card-body">
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.employment_type.id_for_label }}">
+              {{ form.employment_type.label }} <span class="req">*</span>
+            </label>
+            <select name="{{ form.employment_type.html_name }}" id="{{ form.employment_type.id_for_label }}"
+              class="{% if form.employment_type.errors %}field-error-input{% endif %}"
+              data-required="true">
+              {% for val, label in form.employment_type.field.choices %}
+                <option value="{{ val }}" {% if form.employment_type.value == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <span class="field-error" id="err-{{ form.employment_type.html_name }}">⚠ Please select employment type</span>
+            {% for e in form.employment_type.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.role.id_for_label }}">
+              {{ form.role.label }} <span class="req">*</span>
+            </label>
+            <!-- Populated by JS based on employment type -->
+            <select name="{{ form.role.html_name }}" id="{{ form.role.id_for_label }}"
+              class="{% if form.role.errors %}field-error-input{% endif %}"
+              data-required="true">
+              <option value="">Select role...</option>
+            </select>
+            <span class="field-error" id="err-{{ form.role.html_name }}">⚠ Please select a role</span>
+            {% for e in form.role.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group" id="registration_number_field">
+            <label class="field-label" for="{{ form.registration_number.id_for_label }}">
+              {{ form.registration_number.label }}
+              <span class="req" id="reg_required_star">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.registration_number.html_name }}"
+              id="{{ form.registration_number.id_for_label }}"
+              value="{{ form.registration_number.value|default:'' }}"
+              class="{% if form.registration_number.errors %}field-error-input{% endif %}"
+              placeholder="e.g. MD-2024-XXXX">
+            <span class="field-error" id="err-{{ form.registration_number.html_name }}">⚠ Registration number is required for technical staff</span>
+            {% for e in form.registration_number.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group" id="license_expiry_field">
+            <label class="field-label" for="{{ form.license_expiry_date.id_for_label }}">
+              {{ form.license_expiry_date.label }}
+              <span class="req" id="lic_required_star">*</span>
+            </label>
+            <input type="date"
+              name="{{ form.license_expiry_date.html_name }}"
+              id="{{ form.license_expiry_date.id_for_label }}"
+              value="{{ form.license_expiry_date.value|default:'' }}"
+              class="{% if form.license_expiry_date.errors %}field-error-input{% endif %}">
+            <span class="field-error" id="err-{{ form.license_expiry_date.html_name }}">⚠ Licence expiry date is required for technical staff</span>
+            {% for e in form.license_expiry_date.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ════════════════════════
+         STEP 4 · NEXT OF KIN
+    ════════════════════════ -->
+    <div class="step-panel" id="step4">
+      <div class="sf-card">
+        <div class="sf-card-header">
+          <div class="sf-card-header-icon">👨‍👩‍👧</div>
+          <div>
+            <div class="sf-card-title">Next of Kin</div>
+            <div class="sf-card-sub">Emergency contact details</div>
+          </div>
+        </div>
+        <div class="sf-card-body triple">
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.next_of_kin.id_for_label }}">
+              {{ form.next_of_kin.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.next_of_kin.html_name }}"
+              id="{{ form.next_of_kin.id_for_label }}"
+              value="{{ form.next_of_kin.value|default:'' }}"
+              class="{% if form.next_of_kin.errors %}field-error-input{% endif %}"
+              placeholder="Full name" data-required="true">
+            <span class="field-error" id="err-{{ form.next_of_kin.html_name }}">⚠ Next of kin name is required</span>
+            {% for e in form.next_of_kin.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.nok_relationship.id_for_label }}">
+              {{ form.nok_relationship.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.nok_relationship.html_name }}"
+              id="{{ form.nok_relationship.id_for_label }}"
+              value="{{ form.nok_relationship.value|default:'' }}"
+              class="{% if form.nok_relationship.errors %}field-error-input{% endif %}"
+              placeholder="e.g. Spouse, Parent" data-required="true">
+            <span class="field-error" id="err-{{ form.nok_relationship.html_name }}">⚠ Relationship is required</span>
+            {% for e in form.nok_relationship.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.nok_phone.id_for_label }}">
+              {{ form.nok_phone.label }} <span class="req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.nok_phone.html_name }}"
+              id="{{ form.nok_phone.id_for_label }}"
+              value="{{ form.nok_phone.value|default:'' }}"
+              class="{% if form.nok_phone.errors %}field-error-input{% endif %}"
+              placeholder="+256 7XX XXX XXX" data-required="true">
+            <span class="field-error" id="err-{{ form.nok_phone.html_name }}">⚠ Phone number is required</span>
+            {% for e in form.nok_phone.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ════════════════════════
+         STEP 5 · PAY & STATUS
+    ════════════════════════ -->
+    <div class="step-panel" id="step5">
+      <div class="sf-card">
+        <div class="sf-card-header">
+          <div class="sf-card-header-icon">💰</div>
+          <div>
+            <div class="sf-card-title">Compensation &amp; Status</div>
+            <div class="sf-card-sub">Salary, allowances and employment status</div>
+          </div>
+        </div>
+        <div class="sf-card-body pair">
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.gross_salary.id_for_label }}">
+              {{ form.gross_salary.label }} <span class="req">*</span>
+              <span class="hint">UGX</span>
+            </label>
+            <input type="number"
+              name="{{ form.gross_salary.html_name }}"
+              id="{{ form.gross_salary.id_for_label }}"
+              value="{{ form.gross_salary.value|default:'' }}"
+              class="{% if form.gross_salary.errors %}field-error-input{% endif %}"
+              placeholder="e.g. 1500000" min="0" data-required="true">
+            <span class="field-error" id="err-{{ form.gross_salary.html_name }}">⚠ Gross salary is required</span>
+            {% for e in form.gross_salary.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.monthly_allowance.id_for_label }}">
+              {{ form.monthly_allowance.label }}
+              <span class="hint">UGX (optional)</span>
+            </label>
+            <input type="number"
+              name="{{ form.monthly_allowance.html_name }}"
+              id="{{ form.monthly_allowance.id_for_label }}"
+              value="{{ form.monthly_allowance.value|default:'' }}"
+              placeholder="e.g. 200000" min="0">
+            {% for e in form.monthly_allowance.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.account_status.id_for_label }}">
+              {{ form.account_status.label }} <span class="req">*</span>
+            </label>
+            <select name="{{ form.account_status.html_name }}" id="{{ form.account_status.id_for_label }}"
+              class="{% if form.account_status.errors %}field-error-input{% endif %}"
+              data-required="true">
+              {% for val, label in form.account_status.field.choices %}
+                <option value="{{ val }}" {% if form.account_status.value == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <span class="field-error" id="err-{{ form.account_status.html_name }}">⚠ Please select account status</span>
+            {% for e in form.account_status.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" for="{{ form.duty_status.id_for_label }}">
+              {{ form.duty_status.label }} <span class="req">*</span>
+            </label>
+            <select name="{{ form.duty_status.html_name }}" id="{{ form.duty_status.id_for_label }}"
+              class="{% if form.duty_status.errors %}field-error-input{% endif %}"
+              data-required="true">
+              {% for val, label in form.duty_status.field.choices %}
+                <option value="{{ val }}" {% if form.duty_status.value == val %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <span class="field-error" id="err-{{ form.duty_status.html_name }}">⚠ Please select duty status</span>
+            {% for e in form.duty_status.errors %}<span class="field-error-msg">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ════════════════════════
+         STEP 6 · REVIEW
+    ════════════════════════ -->
+    <div class="step-panel" id="step6">
+      <div class="sf-card">
+        <div class="sf-card-header">
+          <div class="sf-card-header-icon">✅</div>
+          <div>
+            <div class="sf-card-title">Review &amp; Submit</div>
+            <div class="sf-card-sub">Confirm the details before registering</div>
+          </div>
+        </div>
+        <div class="sf-card-body single">
+          <div class="review-grid" id="reviewGrid"></div>
+          <p style="font-size:.82rem;color:var(--muted);">
+            ✔ Review the information above. Use Previous to go back and edit any section.
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- NAV BAR -->
+    <div class="step-nav-bar">
+      <button type="button" class="btn-prev" id="btnPrev" onclick="changeStep(-1)" disabled>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Previous
+      </button>
+      <span class="step-counter" id="stepCounter">Step 1 of 6</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button type="button" class="btn-next" id="btnNext" onclick="changeStep(1)">
+          Next
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+        <button type="submit" class="btn-submit" id="btnSubmit" style="display:none;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+          Register Staff Member
+        </button>
+      </div>
+    </div>
 
   </form>
 </div>
-{% endblock %}
-
-{% block extra_head %}
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const typeSelect       = document.getElementById('id_employment_type');
-  const techSelect       = document.getElementById('id_technical_role');
-  const suppSelect       = document.getElementById('id_support_role');
-  const placeholder      = document.getElementById('role-placeholder');
+  /* Pass server-side context to JS */
+  var PREVIOUS_ROLE = "{{ form.role.value|default:'' }}";
 
-  typeSelect.addEventListener('change', function () {
-    const type = this.value;
-
-    // Reset
-    techSelect.style.display = 'none';
-    suppSelect.style.display = 'none';
-    techSelect.innerHTML = '<option value="">— Select Technical Role —</option>';
-    suppSelect.innerHTML = '<option value="">— Select Support Role —</option>';
-
-    if (!type) {
-      placeholder.style.display = 'block';
-      return;
+  /* Determine start step from server-side errors */
+  var startStep = 1;
+  {% if form.errors %}
+  var errFields = [{% for f in form.errors.keys %}"{{ f }}"{% if not forloop.last %},{% endif %}{% endfor %}];
+  var stepMap = {
+    1: ['username','email','password1','password2'],
+    2: ['first_name','last_name','date_of_birth','national_id','phone','profile_picture'],
+    3: ['employment_type','role','registration_number','license_expiry_date'],
+    4: ['next_of_kin','nok_relationship','nok_phone'],
+    5: ['gross_salary','monthly_allowance','account_status','duty_status'],
+  };
+  for (var s = 1; s <= 5; s++) {
+    var hit = false;
+    for (var i = 0; i < stepMap[s].length; i++) {
+      if (errFields.indexOf(stepMap[s][i]) !== -1) { hit = true; break; }
     }
-
-    placeholder.style.display = 'none';
-    const activeSelect = type === 'technical' ? techSelect : suppSelect;
-    activeSelect.style.display = 'block';
-    activeSelect.innerHTML = '<option value="">Loading roles...</option>';
-    activeSelect.disabled = true;
-
-    fetch(`/staff/get-roles/?employment_type=${type}`)
-      .then(r => r.json())
-      .then(data => {
-        const label = type === 'technical' ? 'Technical Role' : 'Support Role';
-        activeSelect.innerHTML = `<option value="">— Select ${label} —</option>`;
-        if (data.roles.length === 0) {
-          activeSelect.innerHTML += '<option disabled>No roles found</option>';
-        } else {
-          data.roles.forEach(role => {
-            const opt = document.createElement('option');
-            opt.value = role.id;
-            opt.textContent = role.name;
-            activeSelect.appendChild(opt);
-          });
-        }
-        activeSelect.disabled = false;
-      })
-      .catch(() => {
-        activeSelect.innerHTML = '<option value="">Failed to load — try again</option>';
-        activeSelect.disabled = false;
-      });
-  });
-});
+    if (hit) { startStep = s; break; }
+  }
+  {% endif %}
+</script>
+<script src="{% static 'js/staff/staff_form.js' %}"></script>
+<script>
+  initStaffForm(startStep);
 </script>
 {% endblock %}
+
+

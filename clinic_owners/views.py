@@ -8,6 +8,7 @@ from .forms import CustomAuthenticationForm
 from django.contrib import messages
 from .forms import OwnerRegistrationForm
 from clinics.models import Clinic
+from staff.models import StaffProfile
 
 
 
@@ -111,7 +112,7 @@ def dashboard_view(request):
 
     # Clinics owned by this user
     clinics = Clinic.objects.filter(owner=request.user).prefetch_related('departments', 'operation_days')
-
+    staffs = StaffProfile.objects.filter(owner=request.user)
     # For each clinic, add placeholder counts (these will be replaced by real data later)
     for clinic in clinics:
         clinic.staff_count = 0          # placeholder
@@ -120,6 +121,7 @@ def dashboard_view(request):
 
     context = {
         'clinics': clinics,
+        'staffs': staffs,
         'register_clinic_url': reverse('clinics:clinic_create'),
     }
     return render(request, 'clinic_owners/dashboard.html', context)
