@@ -1,45 +1,65 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, CreateView, UpdateView, DetailView
-from django.urls import reverse_lazy
-from .models import InventoryItem
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
+from django.contrib import messages
+
+from clinics.models import Clinic
 from .forms import InventoryItemForm
+from .models import InventoryItem
 
 
-class InventoryItemListView(ListView):
-    model = InventoryItem
-    template_name = "inventory/inventory_item_list.html"
-    context_object_name = "items"
-    paginate_by = 20  # optional, adds pagination
+@login_required
+def inventory_add_view(request, clinic_pk):
+    clinic = get_object_or_404(Clinic, pk=clinic_pk, owner=request.user)
 
-    def get_queryset(self):
-        # Only show active items by default
-        return InventoryItem.objects.filter(is_active=True).order_by("brand_name")
+    if request.method == "POST":
+        form = InventoryItemForm(request.POST, clinic=clinic)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"'{form.instance.brand_name}' added to inventory.")
+            return redirect(reverse("clinics:clinic_dashboard", args=[clinic_pk]))
+    else:
+        form = InventoryItemForm(clinic=clinic)
+
+    context = {
+        "form":             form,
+        "clinic":           clinic,
+        "title":            "Add Inventory Item",
+        "use_sidebar":      True,
+        "sb_dashboard_url": reverse("clinics:clinic_dashboard", args=[clinic_pk]),
+        "sb_inventory_url": f"/clinics/{clinic_pk}/inventory/add/",
+        "sb_add_item_url":  f"/clinics/{clinic_pk}/inventory/add/",
+        "sb_profile_url":   reverse("clinics:clinic_detail",    args=[clinic_pk]),
+        "sb_staff_url":     "#",
+        "sb_reports_url":   "#",
+    }
+    return render(request, "inventory/inventory_form.html", context)
 
 
-class AddInventoryItemView(CreateView):
-    model = InventoryItem
-    form_class = InventoryItemForm
-    template_name = "inventory/add_inventory_item.html"
-    success_url = reverse_lazy("inventory_item_list")
+@login_required
+def inventory_edit_view(request, clinic_pk, item_pk):
+    clinic = get_object_or_404(Clinic, pk=clinic_pk, owner=request.user)
+    item   = get_object_or_404(InventoryItem, pk=item_pk, clinic=clinic)
 
-    def form_valid(self, form):
-        # Attach the user who entered the item
-        form.instance.entered_by = self.request.user
-        return super().form_valid(form)
+    if request.method == "POST":
+        form = InventoryItemForm(request.POST, instance=item, clinic=clinic)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"'{item.brand_name}' updated successfully.")
+            return redirect(reverse("clinics:clinic_dashboard", args=[clinic_pk]))
+    else:
+        form = InventoryItemForm(instance=item, clinic=clinic)
 
-
-class UpdateInventoryItemView(UpdateView):
-    model = InventoryItem
-    form_class = InventoryItemForm
-    template_name = "inventory/update_inventory_item.html"
-    success_url = reverse_lazy("inventory_item_list")
-
-    def form_valid(self, form):
-        # Attach the user who updated the item
-        form.instance.updated_by = self.request.user
-        return super().form_valid(form)
-
-class InventoryItemDetailView(DetailView):
-    model = InventoryItem
-    template_name = "inventory/inventory_item_detail.html"
-    context_object_name = "item"
+    context = {
+        "form":             form,
+        "clinic":           clinic,
+        "title":            f"Edit — {item.brand_name}",
+        "use_sidebar":      True,
+        "sb_dashboard_url": reverse("clinics:clinic_dashboard", args=[clinic_pk]),
+        "sb_inventory_url": f"/clinics/{clinic_pk}/inventory/add/",
+        "sb_add_item_url":  f"/clinics/{clinic_pk}/inventory/add/",
+        "sb_profile_url":   reverse("clinics:clinic_detail",    args=[clinic_pk]),
+        "sb_staff_url":     "#",
+        "sb_reports_url":   "#",
+    }
+    return render(request, "inventory/inventory_form.html", context)

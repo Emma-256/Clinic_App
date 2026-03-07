@@ -1,0 +1,419 @@
+{% extends "medi_clinics/base.html" %}
+{% load static %}
+
+{% block title %}Add Inventory Item — {{ clinic.name }}{% endblock %}
+
+{# ═══════════════════════════════════════════
+   SIDEBAR SLOTS  (mirrors clinic_dashboard.html)
+═══════════════════════════════════════════ #}
+{% block sidebar_clinic_name %}{{ clinic.name }}{% endblock %}
+
+{% block sb_dashboard_url %}{{ sb_dashboard_url }}{% endblock %}
+{% block sb_staff_url %}{{ sb_staff_url }}{% endblock %}
+
+{% block sb_inventory_url %}{{ sb_inventory_url }}{% endblock %}
+{% block sb_inventory_active %}active{% endblock %}
+
+{% block sb_reports_url %}{{ sb_reports_url }}{% endblock %}
+{% block sb_profile_url %}{{ sb_profile_url }}{% endblock %}
+
+{% block mobile_sidebar_links %}
+  <a href="{{ sb_dashboard_url }}"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+  <a href="{{ sb_staff_url }}"><i class="bi bi-people"></i> Staff</a>
+  <a href="{{ sb_inventory_url }}"><i class="bi bi-box-seam"></i> Inventory</a>
+  <a href="{{ sb_reports_url }}"><i class="bi bi-bar-chart-line"></i> Reports</a>
+  <a href="{{ sb_profile_url }}"><i class="bi bi-building"></i> Clinic Profile</a>
+{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/inventory/inventory_form.css' %}">
+{% endblock %}
+
+
+{% block content %}
+<div class="inv-wrap">
+
+  <!-- ═══════════════════════════════
+       HERO HEADER
+  ═══════════════════════════════ -->
+  <div class="inv-header">
+    <div class="inv-header-inner">
+      <div class="inv-header-icon">📦</div>
+      <div class="inv-header-text">
+        <div class="inv-header-crumb">
+          <a href="{{ sb_dashboard_url }}">{{ clinic.name }}</a>
+          <span>›</span>
+          <a href="{{ sb_inventory_url }}">Inventory</a>
+          <span>›</span>
+          <span>Add Item</span>
+        </div>
+        <h1>{% if form.instance.pk %}Edit Inventory Item{% else %}Add Inventory Item{% endif %}</h1>
+        <p>Fill in the details below to register a new drug or supply item for <strong>{{ clinic.name }}</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       PROGRESS BAR
+  ═══════════════════════════════ -->
+  <div class="inv-progress-wrap">
+    <div class="inv-progress-steps" id="invProgressSteps"></div>
+    <div class="inv-progress-track">
+      <div class="inv-progress-fill" id="invProgressFill" style="width:2%"></div>
+    </div>
+  </div>
+
+  {% if form.errors %}
+  <div class="inv-error-banner">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <span><strong>Some fields need correction.</strong> Please review the highlighted errors below.</span>
+  </div>
+  {% endif %}
+
+  <div class="inv-toast" id="invToast"></div>
+
+  <form method="post" novalidate id="invForm">
+    {% csrf_token %}
+
+    {# clinic is injected silently from the view — no field shown to user #}
+    {{ form.clinic.as_hidden }}
+
+    {% if form.non_field_errors %}
+    <div class="inv-error-banner">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ form.non_field_errors }}</span>
+    </div>
+    {% endif %}
+
+
+    <!-- ══════════════════════════════
+         STEP 1 · DRUG IDENTIFICATION
+    ══════════════════════════════ -->
+    <div class="inv-step" id="invStep1">
+      <div class="inv-card">
+        <div class="inv-card-head">
+          <div class="inv-card-icon">💊</div>
+          <div>
+            <div class="inv-card-title">Drug Identification</div>
+            <div class="inv-card-sub">Brand name, generic name and classification</div>
+          </div>
+        </div>
+        <div class="inv-card-body">
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.brand_name.id_for_label }}">
+              {{ form.brand_name.label }} <span class="inv-req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.brand_name.html_name }}"
+              id="{{ form.brand_name.id_for_label }}"
+              value="{{ form.brand_name.value|default:'' }}"
+              class="inv-input{% if form.brand_name.errors %} invalid{% endif %}"
+              placeholder="e.g. Panadol"
+              data-required="true"
+              autocomplete="off">
+            <span class="inv-err" id="err-brand_name">⚠ Brand name is required</span>
+            {% for e in form.brand_name.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.generic_name.id_for_label }}">
+              {{ form.generic_name.label }} <span class="inv-req">*</span>
+            </label>
+            <input type="text"
+              name="{{ form.generic_name.html_name }}"
+              id="{{ form.generic_name.id_for_label }}"
+              value="{{ form.generic_name.value|default:'' }}"
+              class="inv-input{% if form.generic_name.errors %} invalid{% endif %}"
+              placeholder="e.g. Paracetamol"
+              data-required="true"
+              autocomplete="off">
+            <span class="inv-err" id="err-generic_name">⚠ Generic name is required</span>
+            {% for e in form.generic_name.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="inv-field col-full">
+            <label class="inv-label">
+              {{ form.drug_categories.label }} <span class="inv-req">*</span>
+            </label>
+            {% if form.drug_categories.errors %}
+              <span class="inv-err show">⚠ {% for e in form.drug_categories.errors %}{{ e }}{% endfor %}</span>
+            {% endif %}
+            <div class="inv-pill-grid" id="drug-cat-grid" data-group-required="true"
+                 data-name="{{ form.drug_categories.html_name }}">
+              {% for choice in form.drug_categories.field.queryset %}
+                <label class="inv-pill{% if choice.pk|stringformat:'s' in form.drug_categories.value|default:'' %} pill-on{% endif %}">
+                  <input type="checkbox"
+                    name="{{ form.drug_categories.html_name }}"
+                    value="{{ choice.pk }}"
+                    {% if choice.pk|stringformat:'s' in form.drug_categories.value|default:'' %}checked{% endif %}>
+                  <span class="inv-pill-dot"></span>
+                  {{ choice.name }}
+                </label>
+              {% endfor %}
+            </div>
+            <span class="inv-group-err" id="err-drug_categories">⚠ Select at least one drug category</span>
+          </div>
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.formulation.id_for_label }}">
+              {{ form.formulation.label }} <span class="inv-req">*</span>
+            </label>
+            <select name="{{ form.formulation.html_name }}"
+                    id="{{ form.formulation.id_for_label }}"
+                    class="inv-select{% if form.formulation.errors %} invalid{% endif %}"
+                    data-required="true">
+              <option value="">Select formulation…</option>
+              {% for obj in form.formulation.field.queryset %}
+                <option value="{{ obj.pk }}"
+                  {% if form.formulation.value|stringformat:'s' == obj.pk|stringformat:'s' %}selected{% endif %}>
+                  {{ obj.name }}
+                </option>
+              {% endfor %}
+            </select>
+            <span class="inv-err" id="err-formulation">⚠ Please select a formulation</span>
+            {% for e in form.formulation.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.storage_condition.id_for_label }}">
+              {{ form.storage_condition.label }}
+            </label>
+            <select name="{{ form.storage_condition.html_name }}"
+                    id="{{ form.storage_condition.id_for_label }}"
+                    class="inv-select{% if form.storage_condition.errors %} invalid{% endif %}">
+              <option value="">Select storage condition…</option>
+              {% for obj in form.storage_condition.field.queryset %}
+                <option value="{{ obj.pk }}"
+                  {% if form.storage_condition.value|stringformat:'s' == obj.pk|stringformat:'s' %}selected{% endif %}>
+                  {{ obj.name }}
+                </option>
+              {% endfor %}
+            </select>
+            {% for e in form.storage_condition.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         STEP 2 · STOCK & PRICING
+    ══════════════════════════════ -->
+    <div class="inv-step" id="invStep2">
+      <div class="inv-card">
+        <div class="inv-card-head">
+          <div class="inv-card-icon">📊</div>
+          <div>
+            <div class="inv-card-title">Stock & Pricing</div>
+            <div class="inv-card-sub">Reorder level, stock target, pricing and unit</div>
+          </div>
+        </div>
+        <div class="inv-card-body">
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.reorder_level.id_for_label }}">
+              {{ form.reorder_level.label }}
+              <span class="inv-hint">— triggers low-stock alert</span>
+            </label>
+            <input type="number"
+              name="{{ form.reorder_level.html_name }}"
+              id="{{ form.reorder_level.id_for_label }}"
+              value="{{ form.reorder_level.value|default:'' }}"
+              class="inv-input{% if form.reorder_level.errors %} invalid{% endif %}"
+              placeholder="e.g. 20"
+              min="0">
+            {% for e in form.reorder_level.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.stock_target.id_for_label }}">
+              {{ form.stock_target.label }}
+              <span class="inv-hint">— desired max quantity</span>
+            </label>
+            <input type="number"
+              name="{{ form.stock_target.html_name }}"
+              id="{{ form.stock_target.id_for_label }}"
+              value="{{ form.stock_target.value|default:'' }}"
+              class="inv-input{% if form.stock_target.errors %} invalid{% endif %}"
+              placeholder="e.g. 200"
+              min="1">
+            {% for e in form.stock_target.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.sale_price.id_for_label }}">
+              {{ form.sale_price.label }} <span class="inv-req">*</span>
+            </label>
+            <div class="inv-input-prefix-wrap">
+              <span class="inv-input-prefix">UGX</span>
+              <input type="number"
+                name="{{ form.sale_price.html_name }}"
+                id="{{ form.sale_price.id_for_label }}"
+                value="{{ form.sale_price.value|default:'' }}"
+                class="inv-input with-prefix{% if form.sale_price.errors %} invalid{% endif %}"
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                data-required="true">
+            </div>
+            <span class="inv-err" id="err-sale_price">⚠ Sale price is required</span>
+            {% for e in form.sale_price.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+          <div class="inv-field">
+            <label class="inv-label" for="{{ form.sale_unit.id_for_label }}">
+              {{ form.sale_unit.label }} <span class="inv-req">*</span>
+            </label>
+            <select name="{{ form.sale_unit.html_name }}"
+                    id="{{ form.sale_unit.id_for_label }}"
+                    class="inv-select{% if form.sale_unit.errors %} invalid{% endif %}"
+                    data-required="true">
+              <option value="">Select unit…</option>
+              {% for obj in form.sale_unit.field.queryset %}
+                <option value="{{ obj.pk }}"
+                  {% if form.sale_unit.value|stringformat:'s' == obj.pk|stringformat:'s' %}selected{% endif %}>
+                  {{ obj.name }}
+                </option>
+              {% endfor %}
+            </select>
+            <span class="inv-err" id="err-sale_unit">⚠ Please select a sale unit</span>
+            {% for e in form.sale_unit.errors %}<span class="inv-err show">⚠ {{ e }}</span>{% endfor %}
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         STEP 3 · STATUS FLAGS
+    ══════════════════════════════ -->
+    <div class="inv-step" id="invStep3">
+      <div class="inv-card">
+        <div class="inv-card-head">
+          <div class="inv-card-icon">🔧</div>
+          <div>
+            <div class="inv-card-title">Status &amp; Flags</div>
+            <div class="inv-card-sub">Control visibility and stocking behaviour</div>
+          </div>
+        </div>
+        <div class="inv-card-body single-col">
+
+          <label class="inv-toggle-row">
+            <div class="inv-toggle-switch">
+              <input type="checkbox"
+                name="{{ form.is_active.html_name }}"
+                id="{{ form.is_active.id_for_label }}"
+                {% if form.is_active.value %}checked{% endif %}>
+              <span class="inv-toggle-track"></span>
+            </div>
+            <div class="inv-toggle-info">
+              <div class="inv-toggle-title">{{ form.is_active.label }}</div>
+              <div class="inv-toggle-sub">Item is visible and available in the inventory list</div>
+            </div>
+          </label>
+
+          <label class="inv-toggle-row">
+            <div class="inv-toggle-switch">
+              <input type="checkbox"
+                name="{{ form.pause_stocking.html_name }}"
+                id="{{ form.pause_stocking.id_for_label }}"
+                {% if form.pause_stocking.value %}checked{% endif %}>
+              <span class="inv-toggle-track"></span>
+            </div>
+            <div class="inv-toggle-info">
+              <div class="inv-toggle-title">{{ form.pause_stocking.label }}</div>
+              <div class="inv-toggle-sub">Temporarily stop ordering this item without removing it</div>
+            </div>
+          </label>
+
+          <label class="inv-toggle-row inv-toggle-danger">
+            <div class="inv-toggle-switch">
+              <input type="checkbox"
+                name="{{ form.discontinued.html_name }}"
+                id="{{ form.discontinued.id_for_label }}"
+                {% if form.discontinued.value %}checked{% endif %}>
+              <span class="inv-toggle-track"></span>
+            </div>
+            <div class="inv-toggle-info">
+              <div class="inv-toggle-title">{{ form.discontinued.label }}</div>
+              <div class="inv-toggle-sub">Mark item as permanently discontinued — cannot be restocked</div>
+            </div>
+          </label>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         STEP 4 · REVIEW & SUBMIT
+    ══════════════════════════════ -->
+    <div class="inv-step" id="invStep4">
+      <div class="inv-card">
+        <div class="inv-card-head">
+          <div class="inv-card-icon">✅</div>
+          <div>
+            <div class="inv-card-title">Review &amp; Save</div>
+            <div class="inv-card-sub">Confirm all details before saving to <strong>{{ clinic.name }}</strong></div>
+          </div>
+        </div>
+        <div class="inv-card-body single-col">
+          <div class="inv-review-grid" id="invReviewGrid"></div>
+          <p class="inv-review-note">
+            ✔ Use the <strong>Previous</strong> button to go back and edit any section before saving.
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         STEP NAV
+    ══════════════════════════════ -->
+    <div class="inv-nav-bar">
+      <button type="button" class="inv-btn-prev" id="invBtnPrev" disabled>
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Previous
+      </button>
+
+      <span class="inv-step-counter" id="invStepCounter">Step 1 of 4</span>
+
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button type="button" class="inv-btn-next" id="invBtnNext">
+          Next
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+        <button type="submit" class="inv-btn-submit" id="invBtnSubmit" style="display:none;">
+          <i class="bi bi-box-seam"></i>
+          Save Item
+        </button>
+      </div>
+    </div>
+
+  </form>
+</div><!-- /inv-wrap -->
+{% endblock %}
+
+
+{% block extra_js %}
+{#
+  Django template data is written into a hidden <script type="application/json">
+  element.  The JS file reads it with JSON.parse — no Django tags ever appear
+  inside a type="text/javascript" block, so editors and linters stay happy.
+#}
+<script type="application/json" id="invBootData">{
+  "hasErrors": {% if form.errors %}true{% else %}false{% endif %},
+  "errorFields": [{% if form.errors %}{% for f in form.errors.keys %}"{{ f }}"{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}]
+}</script>
+
+<script src="{% static 'js/inventory/inventory_form.js' %}"></script>
+{% endblock %}

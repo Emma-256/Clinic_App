@@ -32,7 +32,7 @@ urlpatterns = [
     path('clinic_owners/', include('clinic_owners.urls')),
     path('clinics/', include('clinics.urls', namespace='clinics')),
     path('staff/', include('staff.urls', namespace = 'staff')),
-    path('inventory/',include('inventory.urls',namespace='inventory'))
+    path("inventory/", include("inventory.urls", namespace="inventory")),
 ]
 
 if settings.DEBUG:

@@ -123,6 +123,7 @@ def dashboard_view(request):
         'clinics': clinics,
         'staffs': staffs,
         'register_clinic_url': reverse('clinics:clinic_create'),
+        'use_sidebar': True
     }
     return render(request, 'clinic_owners/dashboard.html', context)
 

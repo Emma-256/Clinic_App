@@ -1,18 +1,21 @@
 from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
-from .views import InventoryItemListView, AddInventoryItemView, UpdateInventoryItemView
+from . import views
 
-app_name = 'inventory'
-
+app_name = "inventory"
 
 urlpatterns = [
-    path("inventory/", InventoryItemListView.as_view(), name="inventory_item_list"),
-    path("inventory/add/", AddInventoryItemView.as_view(), name="add_inventory_item"),
-    path("inventory/<int:pk>/edit/", UpdateInventoryItemView.as_view(), name="update_inventory_item"),
+    # clinic_pk is captured by the parent: clinics/<int:clinic_pk>/inventory/
+    # and passed through to inventory_add_view(request, clinic_pk)
+    path(
+        "add/",
+        views.inventory_add_view,
+        name="add_inventory_item",
+    ),
+
+    # item_pk captured here, clinic_pk still comes from the parent
+    path(
+        "<int:item_pk>/edit/",
+        views.inventory_edit_view,
+        name="update_inventory_item",
+    ),
 ]
-
-
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

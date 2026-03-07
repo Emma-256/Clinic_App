@@ -20,12 +20,12 @@
   {% load crispy_forms_tags %}
 
   <!-- Project CSS (existing files — keep these) -->
-  <link rel="stylesheet" href="{% static 'css/medi_clinics/home.css' %}">
   <link rel="stylesheet" href="{% static 'css/clinic_owners/register.css' %}">
   <link rel="stylesheet" href="{% static 'css/clinic_owners/profile.css' %}">
 
   <!-- NEW: base layout styles (replaces the old base.css) -->
   <link rel="stylesheet" href="{% static 'css/medi_clinics/base.css' %}">
+  
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -36,12 +36,17 @@
        NAVBAR
   ═══════════════════════════════════════ -->
   <nav class="mc-navbar">
-
+    {% if user.is_authenticated %}
     <a class="mc-brand" href="{% url 'clinic_owners:dashboard' %}">
       <div class="mc-brand-icon"><i class="bi bi-hospital"></i></div>
       <div class="mc-brand-name"><span>Medi</span><span>Clinics</span></div>
     </a>
-
+    {% else %}
+    <a class="mc-brand" href="{% url 'home' %}">
+      <div class="mc-brand-icon"><i class="bi bi-hospital"></i></div>
+      <div class="mc-brand-name"><span>Medi</span><span>Clinics</span></div>
+    </a>
+    {% endif %}
     <div class="mc-navbar-spacer"></div>
 
     {% if user.is_authenticated %}
@@ -52,6 +57,7 @@
           </a>
         </li>
       </ul>
+      
 
       <!-- User pill + dropdown -->
       <div class="mc-user-wrap">
@@ -144,17 +150,17 @@
         </button>
       </div>
 
-     <!--  <div class="sb-brand">
+      <div class="sb-brand">
         <div class="sb-brand-icon"><i class="bi bi-hospital-fill"></i></div>
         <div class="sb-brand-text">
           <span class="sb-brand-name">{% block sidebar_clinic_name %}Clinic{% endblock %}</span>
           <span class="sb-brand-sub">Medi Clinics</span>
         </div>
-      </div> -->
+      </div>
 
       <div class="sb-divider"></div>
 
-      <span class="sb-section-label">Quick Actions</span>
+      <span class="sb-section-label">Navigation</span>
       <nav class="sb-nav">
 
         <a href="{% block sb_dashboard_url %}#{% endblock %}"
@@ -164,29 +170,6 @@
           <span class="sb-label">Dashboard</span>
         </a>
 
-        <button class="sb-link" data-tip="Add Staff">
-          <span class="sb-icon"><i class="bi bi-person-plus"></i></span>
-          <span class="sb-label">Add Staff</span>
-        </button>
-
-        <button class="sb-link" data-tip="Add Item">
-          <span class="sb-icon"><i class="bi bi-plus-square"></i></span>
-          <span class="sb-label">Add Item</span>
-        </button>
-
-        <button class="sb-link" data-tip="New Report">
-          <span class="sb-icon"><i class="bi bi-file-earmark-plus"></i></span>
-          <span class="sb-label">New Report</span>
-        </button>
-
-
-      </nav>
-
-      <div class="sb-divider sb-divider--spaced"></div>
-
-      <span class="sb-section-label">Navigations</span>
-      <nav class="sb-nav">
-        
         <a href="{% block sb_staff_url %}#{% endblock %}"
            class="sb-link {% block sb_staff_active %}{% endblock %}"
            data-tip="Staff">
@@ -217,6 +200,29 @@
           <span class="sb-icon"><i class="bi bi-building"></i></span>
           <span class="sb-label">Clinic Profile</span>
         </a>
+
+      </nav>
+
+      <div class="sb-divider sb-divider--spaced"></div>
+
+      <span class="sb-section-label">Quick Actions</span>
+      <nav class="sb-nav">
+
+        <button class="sb-link" data-tip="Add Staff">
+          <span class="sb-icon"><i class="bi bi-person-plus"></i></span>
+          <span class="sb-label">Add Staff</span>
+        </button>
+
+        <a href="{% block sb_add_item_url %} {% endblock %}"
+           class="sb-link {% block sb_add_item_active %}{% endblock %}"
+           data-tip="Add Item">
+          <span class="sb-icon"><i class="bi bi-plus-square"></i></span>
+          <span class="sb-label">Add Item</span>
+        </a>
+        <button class="sb-link" data-tip="New Report">
+          <span class="sb-icon"><i class="bi bi-file-earmark-plus"></i></span>
+          <span class="sb-label">New Report</span>
+        </button>
 
       </nav>
 

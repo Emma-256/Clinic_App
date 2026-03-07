@@ -96,7 +96,6 @@ def clinic_dashboard_view(request, pk):
     """Dashboard for a specific clinic – owner only."""
     clinic = get_object_or_404(Clinic, pk=pk, owner=request.user)
 
-    # Dummy data for other sections
     dummy_staff = [
         {'name': 'Dr. John Doe',      'role': 'Doctor',        'status': 'Active'},
         {'name': 'Nurse Jane Smith',   'role': 'Nurse',          'status': 'On Leave'},
@@ -117,29 +116,23 @@ def clinic_dashboard_view(request, pk):
         'dummy_inventory': dummy_inventory,
         'dummy_reports':   dummy_reports,
 
-        # ── Sidebar activation ──────────────────────────────
-        # Tells base.html to render the sidebar
         'use_sidebar': True,
 
-        # Pre-built URLs passed to the template so the sidebar
-        # blocks can resolve them without extra template logic.
-        # Each key maps to a {% block sb_*_url %} in base.html.
-        'sb_dashboard_url': reverse('clinics:dashboard', args=[pk]),
-        'sb_profile_url':   reverse('clinics:clinic_detail',    args=[pk]),
+        # URL names match your actual clinics/urls.py:
+        #   'dashboard'    → path('<int:pk>/dashboard/', ...)
+        #   'clinic_detail' → path('<int:pk>/', ...)
+        'sb_dashboard_url': reverse('clinics:clinic_dashboard',     args=[pk]),
+        'sb_profile_url':   reverse('clinics:clinic_detail', args=[pk]),
 
-        # Staff / Inventory / Reports aren't built yet, so keep
-        # them as '#' for now — update when the views exist.
         'sb_staff_url':     '#',
         'sb_inventory_url': '#',
         'sb_reports_url':   '#',
+
+        # Built as a plain path — avoids namespace resolution issues
+        # with nested includes. Matches: clinics/<int:pk>/inventory/add/
+        'sb_add_item_url':  f'/inventory/{pk}/inventory/add/',
     }
     return render(request, 'clinics/clinic_dashboard.html', context)
-
-
-
-
-
-
 
 
 
